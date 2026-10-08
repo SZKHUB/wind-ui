@@ -1,0 +1,1047 @@
+--[[
+    FLUXES WIND UI | Librería UI desde 0 para Roblox
+    MADE BY SZK
+    Versión: 1.0.0
+    
+    Iconos cargados desde:
+    - https://raw.githubusercontent.com/ONYXHUB-X-SZK/SZKICONS/refs/heads/main/WINDUI/ICON1
+    - https://raw.githubusercontent.com/ONYXHUB-X-SZK/SZKICONS1/refs/heads/main/ICONS/WINDUI2
+    - https://raw.githubusercontent.com/ONYXHUB-X-SZK/ICONS2/refs/heads/main/SZK/WINDUI/ICONS3
+    - https://raw.githubusercontent.com/ONYXHUB-X-SZK/SZKICONS3/refs/heads/main/SZK/ICONS4
+]]
+
+-- ============================================================
+-- 1. SERVICIOS Y UTILIDADES
+-- ============================================================
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+
+local LocalPlayer = Players.LocalPlayer
+
+local function getParentGui()
+    if gethui then
+        local ok, hui = pcall(gethui)
+        if ok and hui then return hui end
+    end
+    local ok, core = pcall(function() return game:GetService("CoreGui") end)
+    if ok and core then return core end
+    return LocalPlayer:WaitForChild("PlayerGui")
+end
+
+-- ============================================================
+-- 2. CREATOR
+-- ============================================================
+local Creator = {}
+
+function Creator.create(className, props)
+    props = props or {}
+    local instance = Instance.new(className)
+
+    for key, value in pairs(props) do
+        if type(value) == "function" then
+            pcall(function()
+                instance[key]:Connect(value)
+            end)
+        elseif type(key) == "number" then
+            if typeof(value) == "Instance" then
+                value.Parent = instance
+            end
+        elseif typeof(value) == "Instance" then
+            value.Parent = instance
+        else
+            instance[key] = value
+        end
+    end
+
+    return instance
+end
+
+-- ============================================================
+-- 3. CARGA DE ICONOS
+-- ============================================================
+local FluxesUI = {}
+FluxesUI.Icons = {}
+FluxesUI.Version = "1.0.0"
+FluxesUI.Creator = Creator
+FluxesUI.Name = "FLUXES WIND UI"
+FluxesUI.Author = "MADE BY SZK"
+
+local IconSources = {
+    "https://raw.githubusercontent.com/ONYXHUB-X-SZK/SZKICONS/refs/heads/main/WINDUI/ICON1",
+    "https://raw.githubusercontent.com/ONYXHUB-X-SZK/SZKICONS1/refs/heads/main/ICONS/WINDUI2",
+    "https://raw.githubusercontent.com/ONYXHUB-X-SZK/ICONS2/refs/heads/main/SZK/WINDUI/ICONS3",
+    "https://raw.githubusercontent.com/ONYXHUB-X-SZK/SZKICONS3/refs/heads/main/SZK/ICONS4",
+}
+
+function FluxesUI:LoadAllIcons()
+    local master = {}
+    local loadedCount = 0
+    for _, url in ipairs(IconSources) do
+        local success, chunk = pcall(function()
+            return game:HttpGet(url)
+        end)
+        if success and chunk and #chunk > 10 then
+            local fn = loadstring(chunk)
+            if fn then
+                local ok, tbl = pcall(fn)
+                if ok and type(tbl) == "table" then
+                    for k, v in pairs(tbl) do master[k] = v end
+                    loadedCount = loadedCount + 1
+                end
+            end
+        end
+    end
+    self.Icons = master
+    return loadedCount
+end
+
+function FluxesUI:GetIcon(name)
+    if not name then return nil end
+    if type(name) == "string" and name:find("rbxassetid://") then
+        return name
+    end
+    return self.Icons[name] or nil
+end
+
+-- ============================================================
+-- 4. TEMA
+-- ============================================================
+local Theme = {
+    Current = "Dark",
+    Themes = {
+        Dark = {
+            Accent        = Color3.fromHex("#3b82f6"),
+            Background    = Color3.fromHex("#0f172a"),
+            Surface       = Color3.fromHex("#1e293b"),
+            SurfaceHover  = Color3.fromHex("#27364f"),
+            Text          = Color3.fromHex("#f8fafc"),
+            TextDim       = Color3.fromHex("#94a3b8"),
+            Outline       = Color3.fromHex("#334155"),
+            Button        = Color3.fromHex("#334155"),
+            Icon          = Color3.fromHex("#60a5fa"),
+            Danger        = Color3.fromHex("#ef4444"),
+            Success       = Color3.fromHex("#22c55e"),
+        },
+        Light = {
+            Accent        = Color3.fromHex("#2563eb"),
+            Background    = Color3.fromHex("#f8fafc"),
+            Surface       = Color3.fromHex("#ffffff"),
+            SurfaceHover  = Color3.fromHex("#f1f5f9"),
+            Text          = Color3.fromHex("#0f172a"),
+            TextDim       = Color3.fromHex("#64748b"),
+            Outline       = Color3.fromHex("#e2e8f0"),
+            Button        = Color3.fromHex("#e2e8f0"),
+            Icon          = Color3.fromHex("#3b82f6"),
+            Danger        = Color3.fromHex("#dc2626"),
+            Success       = Color3.fromHex("#16a34a"),
+        },
+    },
+}
+
+function Theme.Get(token) return Theme.Themes[Theme.Current][token] end
+function Theme.SetTheme(name) if Theme.Themes[name] then Theme.Current = name end end
+function Theme.AddTheme(name, tokens) Theme.Themes[name] = tokens end
+
+FluxesUI.Theme = Theme
+
+-- ============================================================
+-- 5. NOTIFICACIONES
+-- ============================================================
+local NotifContainer
+local NotifCount = 0
+
+function FluxesUI:InitNotifications(parentGui)
+    if NotifContainer then return end
+    NotifContainer = Creator.create("Frame", {
+        Name = "Fluxes_Notifs",
+        Size = UDim2.new(0, 320, 1, 0),
+        Position = UDim2.new(1, -340, 0, 0),
+        BackgroundTransparency = 1,
+        Parent = parentGui,
+    })
+end
+
+function FluxesUI:Notify(config)
+    config = config or {}
+    if not NotifContainer then
+        self:InitNotifications(getParentGui())
+    end
+
+    local title = config.Title or "FLUXES"
+    local content = config.Content or ""
+    local duration = config.Duration or 3
+    local iconId = self:GetIcon(config.Icon)
+
+    local idx = NotifCount
+    local notif = Creator.create("Frame", {
+        Name = "Notif_" .. idx,
+        Size = UDim2.fromOffset(300, 64),
+        Position = UDim2.new(1, 20, 0, 20 + idx * 76),
+        BackgroundColor3 = Theme.Get("Surface"),
+        BorderSizePixel = 0,
+        Parent = NotifContainer,
+        Creator.create("UICorner", { CornerRadius = UDim.new(0, 10) }),
+        Creator.create("UIStroke", {
+            Color = Theme.Get("Accent"),
+            Thickness = 1,
+            Transparency = 0.3,
+        }),
+    })
+    NotifCount = NotifCount + 1
+
+    if iconId then
+        Creator.create("ImageLabel", {
+            Size = UDim2.fromOffset(24, 24),
+            Position = UDim2.fromOffset(12, 20),
+            BackgroundTransparency = 1,
+            Image = iconId,
+            ImageColor3 = Theme.Get("Accent"),
+            Parent = notif,
+        })
+    end
+
+    local textX = iconId and 44 or 12
+
+    Creator.create("TextLabel", {
+        Text = title,
+        TextColor3 = Theme.Get("Text"),
+        Font = Enum.Font.GothamBold,
+        TextSize = 14,
+        Position = UDim2.fromOffset(textX, 10),
+        Size = UDim2.new(1, -textX - 12, 0, 20),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        BackgroundTransparency = 1,
+        Parent = notif,
+    })
+
+    Creator.create("TextLabel", {
+        Text = content,
+        TextColor3 = Theme.Get("TextDim"),
+        Font = Enum.Font.Gotham,
+        TextSize = 12,
+        Position = UDim2.fromOffset(textX, 32),
+        Size = UDim2.new(1, -textX - 12, 0, 20),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        BackgroundTransparency = 1,
+        Parent = notif,
+    })
+
+    TweenService:Create(notif, TweenInfo.new(0.35, Enum.EasingStyle.Back), {
+        Position = UDim2.new(1, -320, 0, 20 + idx * 76)
+    }):Play()
+
+    task.delay(duration, function()
+        TweenService:Create(notif, TweenInfo.new(0.25), {
+            Position = UDim2.new(1, 40, 0, notif.Position.Y.Offset)
+        }):Play()
+        task.wait(0.3)
+        notif:Destroy()
+    end)
+
+    return notif
+end
+
+-- ============================================================
+-- 6. WINDOW (Ventana estilo FLUXES)
+-- ============================================================
+local Window = {}
+Window.__index = Window
+
+local screenW = workspace.CurrentCamera.ViewportSize.X
+local screenH = workspace.CurrentCamera.ViewportSize.Y
+
+local DEFAULT_W = math.min(420, math.floor(screenW * 0.9))
+local DEFAULT_H = math.min(440, math.floor(screenH * 0.85))
+local BALL_SIZE = 44
+
+function Window.new(config)
+    local self = setmetatable({}, Window)
+    config = config or {}
+
+    local parentGui = getParentGui()
+
+    -- ScreenGui principal
+    local gui = Creator.create("ScreenGui", {
+        Name = "FluxesWindUI",
+        ResetOnSpawn = false,
+        IgnoreGuiInset = true,
+        DisplayOrder = 999,
+        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+        Parent = parentGui,
+    })
+
+    local WIN_W = config.Size and config.Size.X.Offset or DEFAULT_W
+    local WIN_H = config.Size and config.Size.Y.Offset or DEFAULT_H
+
+    local HOME_POS = UDim2.new(0.5, -WIN_W/2, 0.5, -WIN_H/2)
+
+    -- Frame principal (inicia oculto)
+    local main = Creator.create("Frame", {
+        Name = "Main",
+        Size = UDim2.fromOffset(WIN_W, WIN_H),
+        Position = HOME_POS,
+        BackgroundColor3 = Theme.Get("Background"),
+        BorderSizePixel = 0,
+        Visible = false,
+        ClipsDescendants = true,
+        Parent = gui,
+        Creator.create("UICorner", { CornerRadius = UDim.new(0, 14) }),
+        Creator.create("UIStroke", {
+            Color = Theme.Get("Outline"),
+            Thickness = 1.2,
+            Transparency = 0.4,
+        }),
+    })
+
+    -- ============ HEADER ============
+    local header = Creator.create("Frame", {
+        Name = "Header",
+        Size = UDim2.new(1, 0, 0, 46),
+        BackgroundColor3 = Theme.Get("Surface"),
+        BorderSizePixel = 0,
+        Active = true,
+        Parent = main,
+        Creator.create("UICorner", { CornerRadius = UDim.new(0, 14) }),
+    })
+
+    Creator.create("Frame", {
+        Size = UDim2.new(1, -28, 0, 1),
+        Position = UDim2.new(0, 14, 1, -1),
+        BackgroundColor3 = Theme.Get("Outline"),
+        BorderSizePixel = 0,
+        BackgroundTransparency = 0.5,
+        Parent = header,
+    })
+
+    -- Logo
+    local iconFrame = Creator.create("Frame", {
+        Size = UDim2.fromOffset(30, 30),
+        Position = UDim2.new(0, 11, 0.5, -15),
+        BackgroundColor3 = Theme.Get("Accent"),
+        BorderSizePixel = 0,
+        Parent = header,
+        Creator.create("UICorner", { CornerRadius = UDim.new(0, 9) }),
+    })
+
+    local iconId = FluxesUI:GetIcon(config.Icon)
+    if iconId then
+        Creator.create("ImageLabel", {
+            Size = UDim2.new(1, -6, 1, -6),
+            Position = UDim2.fromOffset(3, 3),
+            BackgroundTransparency = 1,
+            Image = iconId,
+            ImageColor3 = Color3.new(0, 0, 0),
+            Parent = iconFrame,
+        })
+    else
+        Creator.create("TextLabel", {
+            Size = UDim2.fromScale(1, 1),
+            Text = "F",
+            TextColor3 = Color3.new(0, 0, 0),
+            Font = Enum.Font.GothamBold,
+            TextSize = 16,
+            BackgroundTransparency = 1,
+            Parent = iconFrame,
+        })
+    end
+
+    -- Título
+    Creator.create("TextLabel", {
+        Text = config.Title or "FLUXES WIND UI",
+        TextColor3 = Theme.Get("Text"),
+        Font = Enum.Font.GothamBold,
+        TextSize = 13,
+        Position = UDim2.fromOffset(49, 11),
+        Size = UDim2.new(1, -150, 0, 16),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        BackgroundTransparency = 1,
+        Parent = header,
+    })
+
+    Creator.create("TextLabel", {
+        Text = config.Subtitle or "MADE BY SZK • v1.0.0",
+        TextColor3 = Theme.Get("TextDim"),
+        Font = Enum.Font.Gotham,
+        TextSize = 8,
+        Position = UDim2.fromOffset(49, 27),
+        Size = UDim2.new(1, -150, 0, 11),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        BackgroundTransparency = 1,
+        Parent = header,
+    })
+
+    -- Botones del header
+    local function headerBtn(text, xOffset, hoverColor)
+        local b = Creator.create("TextButton", {
+            Size = UDim2.fromOffset(26, 26),
+            Position = UDim2.new(1, xOffset, 0.5, -13),
+            BackgroundTransparency = 1,
+            Text = text,
+            TextSize = (text == "−" and 16) or 12,
+            Font = Enum.Font.GothamBold,
+            TextColor3 = Theme.Get("Text"),
+            AutoButtonColor = false,
+            Parent = header,
+            Creator.create("UICorner", { CornerRadius = UDim.new(0, 7) }),
+        })
+        b.MouseEnter:Connect(function()
+            TweenService:Create(b, TweenInfo.new(0.2), {
+                BackgroundTransparency = 0,
+                BackgroundColor3 = hoverColor
+            }):Play()
+        end)
+        b.MouseLeave:Connect(function()
+            TweenService:Create(b, TweenInfo.new(0.2), {
+                BackgroundTransparency = 1
+            }):Play()
+        end)
+        return b
+    end
+
+    local centerBtn = headerBtn("📍", -96, Theme.Get("SurfaceHover"))
+    local minBtn = headerBtn("−", -66, Color3.fromRGB(250, 200, 45))
+    local closeBtn = headerBtn("✕", -36, Theme.Get("Danger"))
+
+    -- ============ BALL TOGGLE ============
+    local ballBtn = Creator.create("TextButton", {
+        Name = "ToggleBall",
+        Size = UDim2.fromOffset(BALL_SIZE, BALL_SIZE),
+        Position = UDim2.new(0, 14, 0.5, -BALL_SIZE/2),
+        BackgroundColor3 = Theme.Get("Accent"),
+        Text = "F",
+        TextColor3 = Color3.fromRGB(0, 0, 0),
+        TextSize = 20,
+        Font = Enum.Font.GothamBold,
+        AutoButtonColor = false,
+        Active = true,
+        Parent = gui,
+        Creator.create("UICorner", { CornerRadius = UDim.new(1, 0) }),
+        Creator.create("UIStroke", {
+            Color = Color3.fromRGB(255, 255, 255),
+            Thickness = 1.6,
+            Transparency = 0.25,
+        }),
+    })
+
+    self.Ball = ballBtn
+    self.Gui = gui
+    self.Main = main
+    self.Header = header
+    self.HomePos = HOME_POS
+    self.WindowSize = UDim2.fromOffset(WIN_W, WIN_H)
+    self.WindowOpen = false
+    self.Tabs = {}
+    self.ActiveTab = nil
+    self.TabButtons = {}
+    self._TabOrder = {}
+
+    -- ============ SIDEBAR ============
+    local SIDEBAR_W = 100
+
+    local sidebar = Creator.create("Frame", {
+        Name = "Sidebar",
+        Size = UDim2.new(0, SIDEBAR_W, 1, -46),
+        Position = UDim2.fromOffset(0, 46),
+        BackgroundColor3 = Theme.Get("Surface"),
+        BackgroundTransparency = 0.35,
+        BorderSizePixel = 0,
+        Parent = main,
+    })
+    Creator.create("UIListLayout", {
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 4),
+        Parent = sidebar,
+    })
+    Creator.create("UIPadding", {
+        PaddingTop = UDim.new(0, 12),
+        PaddingLeft = UDim.new(0, 7),
+        PaddingRight = UDim.new(0, 7),
+        Parent = sidebar,
+    })
+
+    -- Contenido
+    local contentArea = Creator.create("Frame", {
+        Name = "ContentArea",
+        Size = UDim2.new(1, -SIDEBAR_W, 1, -46),
+        Position = UDim2.new(0, SIDEBAR_W, 0, 46),
+        BackgroundTransparency = 1,
+        Parent = main,
+    })
+
+    self.Sidebar = sidebar
+    self.ContentArea = contentArea
+    self.SidebarWidth = SIDEBAR_W
+
+    -- Drag
+    self:_setupDrag(header, main, centerBtn, minBtn, closeBtn)
+
+    -- Ball drag + click toggle
+    self:_setupBall(ballBtn, main)
+
+    -- Acciones de botones
+    centerBtn.MouseButton1Click:Connect(function()
+        TweenService:Create(main, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Position = HOME_POS
+        }):Play()
+    end)
+
+    minBtn.MouseButton1Click:Connect(function()
+        self:SetOpen(false)
+    end)
+
+    closeBtn.MouseButton1Click:Connect(function()
+        gui:Destroy()
+    end)
+
+    -- Atajo de teclado RightShift
+    UserInputService.InputBegan:Connect(function(input, gp)
+        if gp then return end
+        if input.KeyCode == Enum.KeyCode.RightShift then
+            self:Toggle()
+        end
+    end)
+
+    return self
+end
+
+function Window:_setupDrag(handle, target, centerBtn, minBtn, closeBtn)
+    local dragging, dragStart, startX, startY = false, nil, 0, 0
+
+    local function isBtn(obj)
+        if not obj then return false end
+        return obj == centerBtn or obj == minBtn or obj == closeBtn
+            or obj:IsDescendantOf(centerBtn)
+            or obj:IsDescendantOf(minBtn)
+            or obj:IsDescendantOf(closeBtn)
+    end
+
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            if input.Target and isBtn(input.Target) then return end
+            dragging = true
+            dragStart = input.Position
+            startX = target.Position.X.Offset
+            startY = target.Position.Y.Offset
+        end
+    end)
+
+    handle.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            target.Position = UDim2.new(
+                target.Position.X.Scale, startX + delta.X,
+                target.Position.Y.Scale, startY + delta.Y
+            )
+        end
+    end)
+end
+
+function Window:_setupBall(ball, target)
+    local dragging, dragStart, startX, startY = false, nil, 0, 0
+    local moved, pressTime = false, 0
+
+    ball.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            moved = false
+            pressTime = tick()
+            dragStart = input.Position
+            startX = ball.Position.X.Offset
+            startY = ball.Position.Y.Offset
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                    if not moved and (tick() - pressTime) < 0.5 then
+                        self:SetOpen(true)
+                    end
+                    moved = false
+                end
+            end)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            if math.abs(delta.X) > 5 or math.abs(delta.Y) > 5 then
+                moved = true
+            end
+            ball.Position = UDim2.new(
+                ball.Position.X.Scale, startX + delta.X,
+                ball.Position.Y.Scale, startY + delta.Y
+            )
+        end
+    end)
+end
+
+function Window:SetOpen(state)
+    if self.WindowOpen == state then return end
+    self.WindowOpen = state
+
+    if state then
+        self.Main.Visible = true
+        self.Main.Position = UDim2.new(
+            self.HomePos.X.Scale, self.HomePos.X.Offset,
+            self.HomePos.Y.Scale, self.HomePos.Y.Offset + 30
+        )
+        self.Main.Size = UDim2.new(0, self.WindowSize.X.Offset * 0.9, 0, self.WindowSize.Y.Offset * 0.9)
+
+        TweenService:Create(self.Main, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Position = self.HomePos,
+            Size = self.WindowSize,
+        }):Play()
+
+        self.Ball.Visible = false
+    else
+        TweenService:Create(self.Main, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+            Size = UDim2.new(0, self.WindowSize.X.Offset * 0.85, 0, self.WindowSize.Y.Offset * 0.85),
+        }):Play()
+
+        task.delay(0.2, function()
+            self.Main.Visible = false
+            self.Ball.Visible = true
+        end)
+    end
+end
+
+function Window:Toggle()
+    self:SetOpen(not self.WindowOpen)
+end
+
+function Window:Tab(config)
+    config = config or {}
+    local tabName = config.Title or "Tab"
+    local tabIcon = SZKUI_GetIconSafe(config.Icon)
+    local order = #self._TabOrder + 1
+
+    local tab = {
+        Name = tabName,
+        ContentFrame = nil,
+    }
+
+    local btn = Creator.create("TextButton", {
+        Name = tabName .. "_TabBtn",
+        Size = UDim2.new(1, 0, 0, 38),
+        BackgroundColor3 = Theme.Get("Surface"),
+        BackgroundTransparency = 0.5,
+        Text = "",
+        AutoButtonColor = false,
+        LayoutOrder = order,
+        Parent = self.Sidebar,
+        Creator.create("UICorner", { CornerRadius = UDim.new(0, 9) }),
+    })
+
+    local iconLabel
+    if tabIcon then
+        iconLabel = Creator.create("ImageLabel", {
+            Size = UDim2.fromOffset(18, 18),
+            Position = UDim2.fromOffset(10, 10),
+            BackgroundTransparency = 1,
+            Image = tabIcon,
+            ImageColor3 = Theme.Get("TextDim"),
+            Parent = btn,
+        })
+    end
+
+    local textLabel = Creator.create("TextLabel", {
+        Text = tabName,
+        TextColor3 = Theme.Get("TextDim"),
+        Font = Enum.Font.GothamBold,
+        TextSize = 12,
+        Position = UDim2.fromOffset(tabIcon and 36 or 12, 0),
+        Size = UDim2.new(1, tabIcon and -40 or -16, 1, 0),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        BackgroundTransparency = 1,
+        Parent = btn,
+    })
+
+    btn.MouseButton1Click:Connect(function() self:SelectTab(tabName) end)
+    btn.MouseEnter:Connect(function()
+        if self.ActiveTab ~= tabName then
+            TweenService:Create(btn, TweenInfo.new(0.15), {
+                BackgroundColor3 = Theme.Get("SurfaceHover")
+            }):Play()
+        end
+    end)
+    btn.MouseLeave:Connect(function()
+        if self.ActiveTab ~= tabName then
+            TweenService:Create(btn, TweenInfo.new(0.15), {
+                BackgroundColor3 = Theme.Get("Surface")
+            }):Play()
+        end
+    end)
+
+    -- Frame contenedor de la página
+    local contentFrame = Creator.create("ScrollingFrame", {
+        Name = tabName .. "_Content",
+        Size = UDim2.fromScale(1, 1),
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        ScrollBarThickness = 3,
+        ScrollBarImageColor3 = Theme.Get("Accent"),
+        CanvasSize = UDim2.new(0, 0, 0, 0),
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        ScrollingDirection = Enum.ScrollingDirection.Y,
+        Visible = false,
+        Parent = self.ContentArea,
+        Creator.create("UIPadding", {
+            PaddingTop = UDim.new(0, 10),
+            PaddingBottom = UDim.new(0, 10),
+            PaddingLeft = UDim.new(0, 9),
+            PaddingRight = UDim.new(0, 9),
+        }),
+        Creator.create("UIListLayout", {
+            Padding = UDim.new(0, 7),
+            SortOrder = Enum.SortOrder.LayoutOrder,
+        }),
+    })
+
+    tab.Button = btn
+    tab.ContentFrame = contentFrame
+    tab.Icon = iconLabel
+    tab.TextLabel = textLabel
+    self.Tabs[tabName] = tab
+    self.TabButtons[#self.TabButtons + 1] = btn
+    self._TabOrder[#self._TabOrder + 1] = tabName
+
+    if not self.ActiveTab then
+        self:SelectTab(tabName)
+    end
+
+    return tab
+end
+
+-- Helper seguro para iconos dentro del método Tab
+function SZKUI_GetIconSafe(name)
+    return FluxesUI:GetIcon(name)
+end
+
+function Window:SelectTab(name)
+    for tabName, tab in pairs(self.Tabs) do
+        local active = tabName == name
+        tab.ContentFrame.Visible = active
+        if active then
+            tab.Button.BackgroundColor3 = Theme.Get("Accent")
+            tab.Button.BackgroundTransparency = 0
+            if tab.TextLabel then tab.TextLabel.TextColor3 = Theme.Get("Background") end
+            if tab.Icon then tab.Icon.ImageColor3 = Theme.Get("Background") end
+        else
+            tab.Button.BackgroundColor3 = Theme.Get("Surface")
+            tab.Button.BackgroundTransparency = 0.5
+            if tab.TextLabel then tab.TextLabel.TextColor3 = Theme.Get("TextDim") end
+            if tab.Icon then tab.Icon.ImageColor3 = Theme.Get("TextDim") end
+        end
+    end
+    self.ActiveTab = name
+end
+
+-- ============================================================
+-- 7. ELEMENTOS (API INTACTA)
+-- ============================================================
+
+function Window:Button(parentTab, config)
+    config = config or {}
+    local iconId = FluxesUI:GetIcon(config.Icon)
+
+    local btn = Creator.create("TextButton", {
+        Size = UDim2.new(1, 0, 0, 40),
+        BackgroundColor3 = Theme.Get("Button"),
+        Text = "",
+        AutoButtonColor = false,
+        Parent = parentTab.ContentFrame,
+        Creator.create("UICorner", { CornerRadius = UDim.new(0, 8) }),
+        Creator.create("UIStroke", {
+            Color = Theme.Get("Outline"),
+            Thickness = 1,
+            Transparency = 0.5,
+        }),
+    })
+
+    if iconId then
+        Creator.create("ImageLabel", {
+            Size = UDim2.fromOffset(18, 18),
+            Position = UDim2.fromOffset(12, 11),
+            BackgroundTransparency = 1,
+            Image = iconId,
+            ImageColor3 = Theme.Get("Icon"),
+            Parent = btn,
+        })
+    end
+
+    Creator.create("TextLabel", {
+        Text = config.Title or "Button",
+        TextColor3 = Theme.Get("Text"),
+        Font = Enum.Font.GothamMedium,
+        TextSize = 14,
+        Position = UDim2.fromOffset(iconId and 40 or 12, 0),
+        Size = UDim2.new(0.7, 0, 1, 0),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        BackgroundTransparency = 1,
+        Parent = btn,
+    })
+
+    if config.Desc then
+        Creator.create("TextLabel", {
+            Text = config.Desc,
+            TextColor3 = Theme.Get("TextDim"),
+            Font = Enum.Font.Gotham,
+            TextSize = 11,
+            Position = UDim2.new(0.7, 0, 0, 0),
+            Size = UDim2.new(0.3, -12, 1, 0),
+            TextXAlignment = Enum.TextXAlignment.Right,
+            BackgroundTransparency = 1,
+            Parent = btn,
+        })
+    end
+
+    btn.MouseButton1Click:Connect(function()
+        if config.Callback then
+            local ok, err = pcall(config.Callback)
+            if not ok then
+                FluxesUI:Notify({ Title = "Error", Content = tostring(err), Duration = 5 })
+            end
+        end
+    end)
+
+    btn.MouseEnter:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.15), {
+            BackgroundColor3 = Theme.Get("Accent")
+        }):Play()
+    end)
+    btn.MouseLeave:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.15), {
+            BackgroundColor3 = Theme.Get("Button")
+        }):Play()
+    end)
+
+    return btn
+end
+
+function Window:Toggle(parentTab, config)
+    config = config or {}
+    local state = config.Default or config.Value or false
+    local iconId = FluxesUI:GetIcon(config.Icon)
+
+    local frame = Creator.create("Frame", {
+        Size = UDim2.new(1, 0, 0, 40),
+        BackgroundColor3 = Theme.Get("Surface"),
+        Parent = parentTab.ContentFrame,
+        Creator.create("UICorner", { CornerRadius = UDim.new(0, 8) }),
+    })
+
+    if iconId then
+        Creator.create("ImageLabel", {
+            Size = UDim2.fromOffset(18, 18),
+            Position = UDim2.fromOffset(12, 11),
+            BackgroundTransparency = 1,
+            Image = iconId,
+            ImageColor3 = Theme.Get("Icon"),
+            Parent = frame,
+        })
+    end
+
+    Creator.create("TextLabel", {
+        Text = config.Title or "Toggle",
+        TextColor3 = Theme.Get("Text"),
+        Font = Enum.Font.Gotham,
+        TextSize = 14,
+        Position = UDim2.fromOffset(iconId and 40 or 12, 0),
+        Size = UDim2.new(0.6, 0, 1, 0),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        BackgroundTransparency = 1,
+        Parent = frame,
+    })
+
+    local track = Creator.create("Frame", {
+        Size = UDim2.fromOffset(42, 22),
+        Position = UDim2.new(1, -54, 0.5, -11),
+        BackgroundColor3 = state and Theme.Get("Accent") or Theme.Get("Outline"),
+        Parent = frame,
+        Creator.create("UICorner", { CornerRadius = UDim.new(1, 0) }),
+    })
+
+    local knob = Creator.create("Frame", {
+        Size = UDim2.fromOffset(16, 16),
+        Position = state and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 3, 0.5, -8),
+        BackgroundColor3 = Color3.new(1, 1, 1),
+        Parent = track,
+        Creator.create("UICorner", { CornerRadius = UDim.new(1, 0) }),
+    })
+
+    local click = Creator.create("TextButton", {
+        Size = UDim2.fromScale(1, 1),
+        BackgroundTransparency = 1,
+        Text = "",
+        Parent = frame,
+    })
+
+    click.MouseButton1Click:Connect(function()
+        state = not state
+        TweenService:Create(track, TweenInfo.new(0.2), {
+            BackgroundColor3 = state and Theme.Get("Accent") or Theme.Get("Outline")
+        }):Play()
+        TweenService:Create(knob, TweenInfo.new(0.2, Enum.EasingStyle.Back), {
+            Position = state and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 3, 0.5, -8)
+        }):Play()
+        if config.Callback then
+            local ok, err = pcall(config.Callback, state)
+            if not ok then
+                FluxesUI:Notify({ Title = "Error", Content = tostring(err), Duration = 5 })
+            end
+        end
+    end)
+
+    return {
+        Set = function(value)
+            state = value
+            track.BackgroundColor3 = state and Theme.Get("Accent") or Theme.Get("Outline")
+            knob.Position = state and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 3, 0.5, -8)
+        end,
+        Get = function() return state end,
+    }
+end
+
+function Window:Slider(parentTab, config)
+    config = config or {}
+    local valueData = config.Value or { Min = 0, Max = 100, Default = 50 }
+    local min = valueData.Min or 0
+    local max = valueData.Max or 100
+    local currentValue = valueData.Default or min
+    local step = config.Step or 1
+
+    local frame = Creator.create("Frame", {
+        Size = UDim2.new(1, 0, 0, 56),
+        BackgroundColor3 = Theme.Get("Surface"),
+        Parent = parentTab.ContentFrame,
+        Creator.create("UICorner", { CornerRadius = UDim.new(0, 8) }),
+    })
+
+    Creator.create("TextLabel", {
+        Text = config.Title or "Slider",
+        TextColor3 = Theme.Get("Text"),
+        Font = Enum.Font.Gotham,
+        TextSize = 14,
+        Position = UDim2.fromOffset(12, 8),
+        Size = UDim2.new(0.6, 0, 0, 20),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        BackgroundTransparency = 1,
+        Parent = frame,
+    })
+
+    local valueLabel = Creator.create("TextLabel", {
+        Text = tostring(currentValue),
+        TextColor3 = Theme.Get("Accent"),
+        Font = Enum.Font.GothamBold,
+        TextSize = 14,
+        Position = UDim2.new(0.6, 0, 0, 8),
+        Size = UDim2.new(0.4, -12, 0, 20),
+        TextXAlignment = Enum.TextXAlignment.Right,
+        BackgroundTransparency = 1,
+        Parent = frame,
+    })
+
+    local track = Creator.create("Frame", {
+        Size = UDim2.new(1, -24, 0, 6),
+        Position = UDim2.new(0, 12, 1, -20),
+        BackgroundColor3 = Theme.Get("Outline"),
+        Parent = frame,
+        Creator.create("UICorner", { CornerRadius = UDim.new(1, 0) }),
+    })
+
+    local fill = Creator.create("Frame", {
+        Size = UDim2.fromScale((currentValue - min) / (max - min), 1),
+        BackgroundColor3 = Theme.Get("Accent"),
+        Parent = track,
+        Creator.create("UICorner", { CornerRadius = UDim.new(1, 0) }),
+    })
+
+    local knob = Creator.create("Frame", {
+        Size = UDim2.fromOffset(14, 14),
+        Position = UDim2.new((currentValue - min) / (max - min), 0, 0.5, -7),
+        BackgroundColor3 = Color3.new(1, 1, 1),
+        Parent = track,
+        Creator.create("UICorner", { CornerRadius = UDim.new(1, 0) }),
+        Creator.create("UIStroke", { Color = Theme.Get("Accent"), Thickness = 2 }),
+    })
+
+    local dragging = false
+    local trackBtn = Creator.create("TextButton", {
+        Size = UDim2.new(1, 20, 1, 30),
+        Position = UDim2.new(0, -10, 0, -15),
+        BackgroundTransparency = 1,
+        Text = "",
+        Parent = track,
+    })
+
+    trackBtn.MouseButton1Down:Connect(function() dragging = true end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local percent = math.clamp(
+                (input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X,
+                0, 1
+            )
+            local rawValue = min + (max - min) * percent
+            local stepped = math.floor(rawValue / step + 0.5) * step
+            stepped = math.clamp(stepped, min, max)
+
+            if stepped ~= currentValue then
+                currentValue = stepped
+                fill.Size = UDim2.fromScale((currentValue - min) / (max - min), 1)
+                knob.Position = UDim2.new((currentValue - min) / (max - min), 0, 0.5, -7)
+                valueLabel.Text = tostring(currentValue)
+                if config.Callback then
+                    pcall(config.Callback, currentValue)
+                end
+            end
+        end
+    end)
+
+    return {
+        Set = function(v)
+            currentValue = math.clamp(v, min, max)
+            fill.Size = UDim2.fromScale((currentValue - min) / (max - min), 1)
+            knob.Position = UDim2.new((currentValue - min) / (max - min), 0, 0.5, -7)
+            valueLabel.Text = tostring(currentValue)
+        end,
+        Get = function() return currentValue end,
+    }
+end
+
+-- ============================================================
+-- 8. API PÚBLICA
+-- ============================================================
+
+function FluxesUI:CreateWindow(config)
+    config = config or {}
+    config.Title = config.Title or "FLUXES WIND UI"
+    config.Subtitle = config.Subtitle or "MADE BY SZK • v" .. self.Version
+    return Window.new(config)
+end
+
+function FluxesUI:SetTheme(name) Theme.SetTheme(name) end
+function FluxesUI:AddTheme(name, tokens) Theme.AddTheme(name, tokens) end
+
+-- Inicializar iconos
+FluxesUI:LoadAllIcons()
+
+return FluxesUI
