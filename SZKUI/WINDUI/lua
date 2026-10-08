@@ -883,7 +883,7 @@ function Fluid:CreateWindow(config)
 	local resolvedOpenIcon, resolvedOpenIconIsCustom = ResolveIcon(openButtonIcon)
 	local hasOpenIcon = resolvedOpenIcon ~= ""
 
-	local FLOAT_SIZE = 64
+	local FLOAT_SIZE = 44
 
 	local FloatBtn = Instance.new("TextButton")
 	FloatBtn.Size = UDim2.fromOffset(FLOAT_SIZE, FLOAT_SIZE)
@@ -896,7 +896,7 @@ function Fluid:CreateWindow(config)
 	FloatBtn.AutoButtonColor = false
 	FloatBtn.ZIndex = 10
 	FloatBtn.Parent = WindowGui
-	Round(16, FloatBtn)
+	Round(12, FloatBtn)
 
 	local FloatStroke = Outline(FloatBtn, Theme.Accent, 1.5, 0.15)
 	FloatStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
@@ -911,8 +911,8 @@ function Fluid:CreateWindow(config)
 
 	-- Inner top-left accent
 	local FloatCorner = Instance.new("Frame")
-	FloatCorner.Size = UDim2.fromOffset(18, 3)
-	FloatCorner.Position = UDim2.fromOffset(6, 6)
+	FloatCorner.Size = UDim2.fromOffset(12, 2)
+	FloatCorner.Position = UDim2.fromOffset(4, 4)
 	FloatCorner.BackgroundColor3 = Theme.Accent
 	FloatCorner.BorderSizePixel = 0
 	FloatCorner.ZIndex = 12
@@ -927,7 +927,7 @@ function Fluid:CreateWindow(config)
 	PulseRing.BackgroundTransparency = 1
 	PulseRing.ZIndex = 9
 	PulseRing.Parent = FloatBtn
-	Round(16, PulseRing)
+	Round(12, PulseRing)
 	local PulseStroke = Outline(PulseRing, Theme.Accent, 1.5, 0.6)
 
 	task.spawn(function()
@@ -962,7 +962,7 @@ function Fluid:CreateWindow(config)
 		defaultIconLabel.BackgroundTransparency = 1
 		defaultIconLabel.Text = "F"
 		defaultIconLabel.Font = Enum.Font.GothamBlack
-		defaultIconLabel.TextSize = 32
+		defaultIconLabel.TextSize = 22
 		defaultIconLabel.TextColor3 = Theme.Accent
 		defaultIconLabel.ZIndex = 12
 		defaultIconLabel.Parent = FloatBtn
@@ -993,7 +993,7 @@ function Fluid:CreateWindow(config)
 	local function OpenWindow()
 		if isAnimating then return end
 		isAnimating = true
-		FloatBtn.Visible = false
+		FloatBtn.Visible = true
 		MainFrame.Visible = true
 		MainFrame.Size = UDim2.fromOffset(0, 0)
 		MainFrame.BackgroundTransparency = 1
@@ -1020,7 +1020,7 @@ function Fluid:CreateWindow(config)
 	end
 
 	MinBtn.MouseButton1Click:Connect(CloseWindow)
-	FloatHit.MouseButton1Click:Connect(OpenWindow)
+	FloatHit.MouseButton1Click:Connect(ToggleWindow)
 
 	Track(UserInputService.InputBegan:Connect(function(input, gpe)
 		if not gpe and input.KeyCode == toggleKey then
