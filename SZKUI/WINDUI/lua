@@ -1,3 +1,6 @@
+-- ============================================================
+-- SZK HUB  —  FULL SCRIPT (CORREGIDO)
+-- ============================================================
 local Players          = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService     = game:GetService("TweenService")
@@ -135,6 +138,9 @@ local function LoadHub()
     ScreenGui.Name = "SZKHUB"
     ScreenGui.ResetOnSpawn = false
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    -- 🔽 FIX 1: evitar que otra GUI lo tape
+    ScreenGui.DisplayOrder   = 999
+    ScreenGui.IgnoreGuiInset = true
     ScreenGui.Parent = PlayerGui
 
     local Theme = {
@@ -245,13 +251,14 @@ local function LoadHub()
             parts[#parts + 1] = f
             return f
         end
-        local function outline(x, y, w, h, r, th)
+        -- 🔽 FIX 3: parent opcional para el stroke (bug del icono CREDITS)
+        local function outline(x, y, w, h, r, th, par)
             local f = make("Frame", {
                 Size = UDim2.new(0, w, 0, h), Position = UDim2.new(0, x, 0, y),
                 BackgroundTransparency = 1, ZIndex = 4,
             }, box)
             if r then corner(f, r) end
-            parts[#parts + 1] = stroke(f, Theme.Accent, th or 1.5, 0)
+            parts[#parts + 1] = stroke(par or f, Theme.Accent, th or 1.5, 0)
             return f
         end
         if name == "HOME" then
@@ -312,6 +319,7 @@ local function LoadHub()
         BorderSizePixel = 0,
         Active = true,
         Draggable = true,
+        Visible = true,          -- 🔽 FIX 4
     }, ScreenGui)
     corner(MainButton, 10)
     local mainBtnStroke = stroke(MainButton, Color3.fromRGB(0, 0, 0), 1, 0.6)
@@ -845,5 +853,11 @@ local function LoadHub()
     return API
 end
 
-local SZKHUB = LoadHub()
+-- 🔽 FIX 2: ejecución protegida con mensajes claros en F9
+local ok, SZKHUB = pcall(LoadHub)
+if not ok then
+    warn("[SZK] Error cargando la UI: " .. tostring(SZKHUB))
+    return nil
+end
+print("[SZK] SZKHUB cargado correctamente. Click en 'OPEN SZKHUB' (arriba centro) para abrir.")
 return SZKHUB
