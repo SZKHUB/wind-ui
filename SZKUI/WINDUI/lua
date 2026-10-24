@@ -210,11 +210,11 @@ local function BuildTheme(name, accent, outline, toggle, slider, text, placehold
 	}
 end
 
-SZK.Themes["67"] = BuildTheme("67", "#FF1A1A", "#FF2A2A", "#FF1A1A", "#FF1A1A", "#F0F0F0", "#9A9A9A", "#000000", "#0A0A0A", "#FF1A1A")
+-- Tema Rubi (antes "67") y Sovereign
+SZK.Themes.Rubi = BuildTheme("Rubi", "#FF1A1A", "#FF2A2A", "#FF1A1A", "#FF1A1A", "#F0F0F0", "#9A9A9A", "#000000", "#0A0A0A", "#FF1A1A")
 SZK.Themes.Sovereign = BuildTheme("Sovereign", "#D4AF37", "#F0D580", "#D4AF37", "#F0D580", "#FFF8E7", "#C9B98A", "#0A0805", "#15110A", "#F0D580")
-SZK.Themes.Rubi = BuildTheme("Rubi", "#C70039", "#FF4D6B", "#C70039", "#FF4D6B", "#FFE5EA", "#B88898", "#0A0003", "#1A0A10", "#FF4D6B")
 
-SZK.ThemeOrder = {"67", "Rubi", "Sovereign"}
+SZK.ThemeOrder = {"Rubi", "Sovereign"}
 
 local MainGui = Instance.new("ScreenGui")
 MainGui.Name = "SZKLibrary"
@@ -319,7 +319,7 @@ function SZK:Notify(config)
 		Info = Color3.fromRGB(80, 140, 255),
 	}
 	local accent = colors[ntype] or colors.Info
-	local T = SZK.CurrentTheme or SZK.Themes["67"]
+	local T = SZK.CurrentTheme or SZK.Themes.Rubi
 
 	local slot = Instance.new("Frame")
 	slot.Size = UDim2.new(1, 0, 0, 0)
@@ -442,8 +442,8 @@ end
 
 function SZK:CreateWindow(config)
 	config = config or {}
-	local themeName = config.Theme or "67"
-	local title = config.Title or "67"
+	local themeName = config.Theme or "Rubi"
+	local title = config.Title or "SZK"
 	local description = config.Description or ""
 	local iconKey = config.Logo or config.Icon
 	local size = config.Size or Vector2.new(720, 480)
@@ -453,10 +453,9 @@ function SZK:CreateWindow(config)
 	local bgImage = config.BackgroundImage or "https://cdn.discordapp.com/attachments/1521705447781044287/1549962059649912873/grok_1789610023592.jpg?ex=6aac9a27&is=6aab48a7&hm=d748df37d714a5c3d6cde5922782cd6eca54dcd6189b1600013623bb5d9a505f&"
 	local bgTransparency = math.clamp(config.BackgroundImageTransparency or config.BackgroundTransparency or 0, 0, 1)
 	local panelTransparency = math.clamp(config.Transparency or 0.08, 0.02, 0.6)
-	local openButtonIcon = config.OpenButtonIcon or "https://cdn.discordapp.com/attachments/1521705447781044287/1550262143704760473/1789680518902-removebg-preview_1.png?ex=6aadb1a1&is=6aac6021&hm=3c16d7c7d6bb64238c13cc5ff71324c7142f68e224447cf4b2173be6d8caee69&"
-	local openButtonText = config.OpenButtonText or "Open Window"
+	local openButtonText = config.OpenButtonText or "OPEN SZK"
 
-	local Theme = SZK.Themes[themeName] or SZK.Themes["67"]
+	local Theme = SZK.Themes[themeName] or SZK.Themes.Rubi
 	SZK.CurrentTheme = Theme
 	local Registered = {}
 	local DependentRows = {}
@@ -576,7 +575,7 @@ function SZK:CreateWindow(config)
 	BgTint.BackgroundTransparency = 0.55
 	BgTint.BorderSizePixel = 0
 	BgTint.ZIndex = 0
-	BgTint.Visible = hasBackground and themeName ~= "67"
+	BgTint.Visible = hasBackground and themeName ~= "Rubi"
 	BgTint.Parent = MainFrame
 
 	local Overlay = Instance.new("Frame")
@@ -825,78 +824,33 @@ function SZK:CreateWindow(config)
 	PageHost.ZIndex = 5
 	PageHost.Parent = MainFrame
 
-	local resolvedOpenIcon, resolvedOpenIconIsCustom = ResolveIcon(openButtonIcon)
-	local hasOpenIcon = resolvedOpenIcon ~= ""
-
+	-- === BOTÓN DE ABRIR estilo SZKHUB (pill blanco) ===
 	local FloatBtn = Instance.new("TextButton")
-	FloatBtn.Size = UDim2.fromOffset(300, 80)
-	FloatBtn.Position = UDim2.new(0, 24, 0.5, -40)
-	FloatBtn.BackgroundColor3 = Color3.fromRGB(6, 6, 6)
-	FloatBtn.BackgroundTransparency = 1
-	FloatBtn.Text = ""
+	FloatBtn.Name = "MainButton"
+	FloatBtn.AnchorPoint = Vector2.new(0.5, 0)
+	FloatBtn.Size = UDim2.fromOffset(140, 34)
+	FloatBtn.Position = UDim2.new(0.5, 0, 0, 12)
+	FloatBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	FloatBtn.Text = openButtonText
+	FloatBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+	FloatBtn.Font = Enum.Font.GothamBlack
+	FloatBtn.TextSize = 12
+	FloatBtn.AutoButtonColor = false
+	FloatBtn.BorderSizePixel = 0
 	FloatBtn.Visible = false
-	FloatBtn.ClipsDescendants = true
 	FloatBtn.ZIndex = 10
 	FloatBtn.Parent = WindowGui
-	Round(28, FloatBtn)
-	local FloatStroke = Outline(FloatBtn, Theme.Accent, 0, 1)
-	local FloatGlow = Instance.new("UIStroke")
-	FloatGlow.Color = Theme.Accent
-	FloatGlow.Thickness = 0
-	FloatGlow.Transparency = 1
-	FloatGlow.Parent = FloatBtn
+	Round(10, FloatBtn)
+	local FloatStroke = Outline(FloatBtn, Color3.fromRGB(0, 0, 0), 1, 0.6)
 
-	local FloatHit = Instance.new("TextButton")
-	FloatHit.BackgroundTransparency = 1
-	FloatHit.AutoButtonColor = false
-	FloatHit.Text = ""
-	FloatHit.ZIndex = 13
-	FloatHit.Parent = FloatBtn
-
-	if hasOpenIcon then
-		local fullImg = Instance.new("ImageLabel")
-		fullImg.Size = UDim2.fromScale(1, 1)
-		fullImg.BackgroundTransparency = 1
-		fullImg.Image = resolvedOpenIcon
-		fullImg.ScaleType = Enum.ScaleType.Fit
-		fullImg.ImageColor3 = Color3.new(1, 1, 1)
-		fullImg.ZIndex = 12
-		fullImg.Parent = FloatBtn
-
-		FloatHit.AnchorPoint = Vector2.new(0.5, 0.5)
-		FloatHit.Position = UDim2.new(0.5, 0, 0.5, 0)
-		FloatHit.Size = UDim2.fromOffset(84, 84)
-	else
-		local fIconHolder = Instance.new("Frame")
-		fIconHolder.Size = UDim2.fromOffset(30, 30)
-		fIconHolder.Position = UDim2.new(0, 10, 0.5, -15)
-		fIconHolder.BackgroundTransparency = 1
-		fIconHolder.ZIndex = 11
-		fIconHolder.Parent = FloatBtn
-		local cross = Instance.new("TextLabel")
-		cross.Size = UDim2.fromScale(1, 1)
-		cross.BackgroundTransparency = 1
-		cross.Text = "✥"
-		cross.Font = Enum.Font.GothamBold
-		cross.TextSize = 26
-		cross.TextColor3 = Theme.Accent
-		cross.ZIndex = 12
-		cross.Parent = fIconHolder
-		local fTxt = Instance.new("TextLabel")
-		fTxt.Size = UDim2.new(1, -48, 1, 0)
-		fTxt.Position = UDim2.new(0, 44, 0, 0)
-		fTxt.BackgroundTransparency = 1
-		fTxt.Text = openButtonText
-		fTxt.Font = Enum.Font.GothamBlack
-		fTxt.TextSize = 16
-		fTxt.TextColor3 = Color3.fromRGB(255, 255, 255)
-		fTxt.TextXAlignment = Enum.TextXAlignment.Left
-		fTxt.ZIndex = 12
-		fTxt.Parent = FloatBtn
-
-		FloatHit.Position = UDim2.new(0, 0, 0, 0)
-		FloatHit.Size = UDim2.new(1, -30, 1, 0)
-	end
+	FloatBtn.MouseEnter:Connect(function()
+		Tween(FloatBtn, 0.12, { BackgroundColor3 = Color3.fromRGB(235, 235, 245) })
+		Tween(FloatStroke, 0.12, { Transparency = 0.3 })
+	end)
+	FloatBtn.MouseLeave:Connect(function()
+		Tween(FloatBtn, 0.12, { BackgroundColor3 = Color3.fromRGB(255, 255, 255) })
+		Tween(FloatStroke, 0.12, { Transparency = 0.6 })
+	end)
 
 	local winOpen = true
 	local isAnimating = false
@@ -931,7 +885,7 @@ function SZK:CreateWindow(config)
 	end
 
 	MinBtn.MouseButton1Click:Connect(CloseWindow)
-	FloatHit.MouseButton1Click:Connect(OpenWindow)
+	FloatBtn.MouseButton1Click:Connect(OpenWindow)
 
 	Track(UserInputService.InputBegan:Connect(function(input, gpe)
 		if not gpe and input.KeyCode == toggleKey then
@@ -1042,7 +996,7 @@ function SZK:CreateWindow(config)
 	EnableResize(ResizeGrip)
 
 	local function UpdateTheme(name, animate)
-		local T = SZK.Themes[name] or SZK.Themes["67"]
+		local T = SZK.Themes[name] or SZK.Themes.Rubi
 		SZK.CurrentTheme = T
 		Theme = T
 
@@ -1050,7 +1004,7 @@ function SZK:CreateWindow(config)
 		MainFrame.BackgroundTransparency = mainBgTrans
 		CornerFlag.BackgroundColor3 = T.Accent
 		BgTint.BackgroundColor3 = T.Accent
-		BgTint.Visible = hasBackground and T.Name ~= "67"
+		BgTint.Visible = hasBackground and T.Name ~= "Rubi"
 		TabStripGlow.Color = T.Accent
 		Sidebar.ScrollBarImageColor3 = T.Accent
 		ThemePopup.BackgroundColor3 = T.ElementBackground
@@ -1063,27 +1017,10 @@ function SZK:CreateWindow(config)
 			ThemeBtn.BackgroundColor3 = Shade(T.ElementBackground)
 		end
 		if WindowStroke then WindowStroke.Color = T.Accent end
-		if FloatStroke then FloatStroke.Color = T.Accent end
-		if FloatGlow then FloatGlow.Color = T.Accent end
 
 		if HeaderScan then HeaderScan.BackgroundColor3 = T.Accent end
 		if SideScan then SideScan.BackgroundColor3 = T.Accent end
 
-		FloatBtn.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
-		local fHolder = FloatBtn:FindFirstChildOfClass("Frame")
-		if fHolder then
-			local img = fHolder:FindFirstChildOfClass("ImageLabel")
-			if img then TintIfAllowed(img, T.Accent) end
-			local cross = fHolder:FindFirstChildOfClass("TextLabel")
-			if cross then cross.TextColor3 = T.Accent end
-		end
-		for _, ch in ipairs(FloatBtn:GetChildren()) do
-			if ch:IsA("TextLabel") and ch.Text ~= openButtonText then
-
-			elseif ch:IsA("TextLabel") then
-				ch.TextColor3 = Color3.fromRGB(255, 255, 255)
-			end
-		end
 		for _, item in ipairs(Registered) do
 			if item.Type == "TabBtn" then
 				if item.Active then
@@ -1211,7 +1148,7 @@ function SZK:CreateWindow(config)
 		BgImageLabel.Visible = resolved ~= ""
 		if transparency then BgImageLabel.ImageTransparency = transparency end
 		hasBackground = resolved ~= ""
-		BgTint.Visible = hasBackground and Theme.Name ~= "67"
+		BgTint.Visible = hasBackground and Theme.Name ~= "Rubi"
 		mainBgTrans = hasBackground and 0.92 or panelTransparency
 		elementTrans = hasBackground and 0.82 or 0.22
 		elevatedTrans = hasBackground and 0.7 or 0.16
