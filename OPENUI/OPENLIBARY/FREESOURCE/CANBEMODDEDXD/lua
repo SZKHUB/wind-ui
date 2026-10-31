@@ -1,7 +1,3 @@
---==================================================================
---  OPENUI Library  ·  Full Edition (rebranded)
---  Glass (ventana+toasts+pill) · Blur · 30 Themes · Sounds · Shadow
---==================================================================
 local Players          = game:GetService("Players")
 local TweenService     = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -18,15 +14,12 @@ local LP     = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
 local OPENUI = { Themes = {}, Windows = {}, Flags = {}, ConfigFolder = "OPENUI_Configs", CurrentTheme = nil, Icons = {} }
-local SZK    = OPENUI -- alias legacy
+local SZK    = OPENUI
 
 local FONT       = 12
 local FONT_TITLE = 15
 local WHITE      = Color3.new(1,1,1)
 
---==================================================================
---  THEME SYSTEM (30 temas)
---==================================================================
 local function derive(accH, bgH, lightH, secH, danger)
     local acc   = Color3.fromHex(accH)
     local bg    = Color3.fromHex(bgH)
@@ -84,9 +77,6 @@ local T = {}
 for k, v in pairs(OPENUI.Themes.Aqua) do T[k] = v end
 OPENUI.CurrentTheme = T
 
---==================================================================
---  GLOBAL STATE
---==================================================================
 local alive, bound, onTheme, conns = true, {}, {}, {}
 local textObjs, textShadowOn, TEXT_SHADOW = {}, true, 0.65
 
@@ -102,9 +92,6 @@ function OPENUI:SetTextShadow(v) setTextShadow(v) end
 function OPENUI:GetTextShadow() return textShadowOn end
 function OPENUI:ToggleTextShadow() setTextShadow(not textShadowOn); return textShadowOn end
 
---==================================================================
---  UTILS
---==================================================================
 local function rnd(a,b) return a + math.random()*(b-a) end
 local function Connect(sig, fn) local c = sig:Connect(fn); table.insert(conns, c); return c end
 
@@ -176,9 +163,6 @@ local function cleanup(name)
     end)
 end
 
---==================================================================
---  SOUNDS SYSTEM
---==================================================================
 local Sfx = {
     Enabled = true,
     Volume  = 0.6,
@@ -246,14 +230,9 @@ function OPENUI:RemoveSounds()
     notifSnd = nil
 end
 
---==================================================================
---  GLASS SYSTEM (global: window + toasts + pill)
---==================================================================
 local glassEnabled      = true
 local glassTransparency = 0.55
-
--- track active toasts for live glass re-apply
-local activeToasts = {} -- { card = CanvasGroup, tint = Frame, gloss = Frame }
+local activeToasts      = {}
 
 local function applyGlassToToast(t)
     if not t.card or not t.card.Parent then return end
@@ -270,11 +249,9 @@ end
 
 local function setGlassEnabled(v)
     glassEnabled = v and true or false
-    -- windows
     for _, w in ipairs(OPENUI.Windows) do
         if w._applyGlass then pcall(w._applyGlass) end
     end
-    -- toasts
     for i = #activeToasts, 1, -1 do
         local t = activeToasts[i]
         if not t.card or not t.card.Parent then
@@ -305,9 +282,6 @@ function OPENUI:GetGlassEnabled() return glassEnabled end
 function OPENUI:SetGlassTransparency(v) setGlassTransparency(v) end
 function OPENUI:GetGlassTransparency() return glassTransparency end
 
---==================================================================
---  BLUR (global, removible)
---==================================================================
 local blurFx      = nil
 local blurEnabled = true
 local openWindows = 0
@@ -336,9 +310,6 @@ function OPENUI:RemoveBlur()
     if blurFx then pcall(function() blurFx:Destroy() end); blurFx = nil end
 end
 
---==================================================================
---  ICONS
---==================================================================
 OPENUI.IconSources = {
     "https://raw.githubusercontent.com/SZKHUB/SZKSCRIPT/refs/heads/main/OLDICONS1",
     "https://raw.githubusercontent.com/SZKHUB/SZKSCRIPT/refs/heads/main/NEWICONS1",
@@ -373,9 +344,6 @@ local function Icon(name, size, color, glyph)
         Text = glyph or "•", TextSize = size, Font = Enum.Font.GothamBold, TextColor3 = color }), "TextColor3"
 end
 
---==================================================================
---  CLEANUP OLD
---==================================================================
 for _, n in ipairs({"OPENUI","OPENUI_Button","OPENUI_Toasts","OPENUIWindow","SZKLibrary","SZKWindow","SZK_Button","SZK_Toasts"}) do cleanup(n) end
 pcall(function()
     for _, n in ipairs({"OPENUI_Blur","SZK_Blur"}) do
@@ -383,9 +351,6 @@ pcall(function()
     end
 end)
 
---==================================================================
---  NOTIFICATIONS (Toast) — glass-aware
---==================================================================
 local ToastGui = New("ScreenGui", { Name = "OPENUI_Toasts", ResetOnSpawn = false, DisplayOrder = 20,
     ZIndexBehavior = Enum.ZIndexBehavior.Sibling })
 pcall(function() if syn and syn.protect_gui then syn.protect_gui(ToastGui) end end)
@@ -452,7 +417,6 @@ local function Notify(title, text, dur, kind, actions)
         NumberSequenceKeypoint.new(0,0.86), NumberSequenceKeypoint.new(0.35,0.95),
         NumberSequenceKeypoint.new(0.5,1), NumberSequenceKeypoint.new(1,0.95) }), Parent = glossF })
 
-    -- track for live glass toggle
     table.insert(activeToasts, { card = card, tint = tintF, gloss = glossF })
 
     local badge = New("Frame", { Position = UDim2.fromOffset(9,9), Size = UDim2.fromOffset(28,28),
@@ -572,9 +536,6 @@ function OPENUI:Error(t,c,d)   return self:Notify({Title=t or "Error",   Content
 function OPENUI:Warn(t,c,d)    return self:Notify({Title=t or "Warning", Content=c or "", Type="Warning", Duration=d or 3}) end
 function OPENUI:Info(t,c,d)    return self:Notify({Title=t or "Info",    Content=c or "", Type="Info",    Duration=d or 3}) end
 
---==================================================================
---  INTERACTION HELPERS
---==================================================================
 local function Ripple(parent, pos, alpha)
     local ap, as = parent.AbsolutePosition, parent.AbsoluteSize
     local r = New("Frame", { AnchorPoint = Vector2.new(0.5,0.5),
@@ -617,9 +578,6 @@ local function RowHit(c)
     return hit
 end
 
---==================================================================
---  THEME APPLY
---==================================================================
 local function applyThemeByName(name, silent)
     local new = OPENUI.Themes[name]; if not new then return end
     for k, v in pairs(new) do T[k] = v end
@@ -638,9 +596,6 @@ function OPENUI:GetThemes() return OPENUI.Themes end
 function OPENUI:GetFlag(name) return OPENUI.Flags[name] end
 function OPENUI:SetFlag(name, v) OPENUI.Flags[name] = v end
 
---==================================================================
---  CONFIG SAVE/LOAD
---==================================================================
 function OPENUI:SaveConfig(name)
     name = tostring(name or "default")
     if not (writefile and HttpService) then return false end
@@ -672,9 +627,6 @@ function OPENUI:LoadConfig(name)
     return true
 end
 
---==================================================================
---  CREATE WINDOW
---==================================================================
 function OPENUI:CreateWindow(cfg)
     cfg = cfg or {}
     local themeName = cfg.Theme or "Aqua"
@@ -701,7 +653,6 @@ function OPENUI:CreateWindow(cfg)
     local Window = { Tabs = {}, Connections = {}, Config = cfg }
     local function Track(c) table.insert(Window.Connections, c); table.insert(conns, c); return c end
 
-    -- PILL BUTTON (glass-aware)
     local pillBaseTransparency = 0.4
     local pill = New("Frame", {
         Name = "HubPill", AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.new(0.5,0,0,44),
@@ -743,7 +694,6 @@ function OPENUI:CreateWindow(cfg)
         TextSize = FONT+1, TextColor3 = WHITE, LayoutOrder = 2, Parent = pillBtn })
     Interact(pillBtn, { press = 0.95, hoverT = 0.88 })
 
-    -- SHELL + WINDOW
     local shell = New("Frame", { AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.5),
         Size = UDim2.fromOffset(winW+40, winH+40), BackgroundTransparency = 1, Visible = false, Parent = GUI })
     local shellScale = New("UIScale", { Parent = shell })
@@ -788,7 +738,6 @@ function OPENUI:CreateWindow(cfg)
         NumberSequenceKeypoint.new(0,1), NumberSequenceKeypoint.new(0.5,0.15),
         NumberSequenceKeypoint.new(1,1) }), Parent = rim })
 
-    -- GLASS APPLY (window + pill)
     Window._applyGlass = function()
         if glassEnabled then
             win.BackgroundTransparency = glassTransparency
@@ -804,7 +753,6 @@ function OPENUI:CreateWindow(cfg)
     end
     Window._applyGlass()
 
-    -- TITLE BAR
     local titleBar = New("Frame", { Position = UDim2.new(0,8,0,8), Size = UDim2.new(1,-16,0,42),
         BackgroundTransparency = 0.84, Theme = { BackgroundColor3 = "card" }, Parent = win })
     Cor(titleBar, 11); Stk(titleBar, "edge", 1, 0.7)
@@ -828,7 +776,6 @@ function OPENUI:CreateWindow(cfg)
     local closeBtn = titleButton(-10, "danger", "x", "×")
     local themeBtn = titleButton(-46, "panel2", "palette", "◐")
 
-    -- SIDEBAR + CONTENT
     local SIDE_W = 150
     local sidebar = New("ScrollingFrame", { Position = UDim2.new(0,10,0,58),
         Size = UDim2.new(0,SIDE_W,1,-66), BackgroundTransparency = 1, ScrollBarThickness = 0,
@@ -838,7 +785,6 @@ function OPENUI:CreateWindow(cfg)
     local contentArea = New("Frame", { Position = UDim2.new(0,SIDE_W+25,0,58),
         Size = UDim2.new(1,-(SIDE_W+35),1,-66), BackgroundTransparency = 1, Parent = win })
 
-    -- THEME MENU
     local themeMenu = New("CanvasGroup", { Name = "ThemeMenu", AnchorPoint = Vector2.new(1,0),
         Position = UDim2.new(1,-86,0,54), Size = UDim2.fromOffset(200,380),
         BackgroundTransparency = 0.08, GroupTransparency = 1, Visible = false, ZIndex = 61,
@@ -895,7 +841,6 @@ function OPENUI:CreateWindow(cfg)
         themeMenuToggle(not (themeMenu.Visible and themeMenu.GroupTransparency < 0.5))
     end)
 
-    -- OPEN / CLOSE
     local winOpen = false
     local openToken = 0
     local function toggleWindow()
@@ -929,7 +874,6 @@ function OPENUI:CreateWindow(cfg)
     pillBtn.MouseButton1Click:Connect(toggleWindow)
     closeBtn.MouseButton1Click:Connect(toggleWindow)
 
-    -- Drag pill
     do
         local dragging, startPos, origin
         dragZone.InputBegan:Connect(function(i)
@@ -944,7 +888,6 @@ function OPENUI:CreateWindow(cfg)
         Track(UserInputService.InputEnded:Connect(function(i) if isPress(i) then dragging = false end end))
     end
 
-    -- Drag window
     do
         local dragging, startPos, origin
         titleBar.InputBegan:Connect(function(i)
@@ -959,12 +902,10 @@ function OPENUI:CreateWindow(cfg)
         Track(UserInputService.InputEnded:Connect(function(i) if isPress(i) then dragging = false end end))
     end
 
-    -- Toggle key
     Track(UserInputService.InputBegan:Connect(function(i, gp)
         if not gp and i.KeyCode == toggleKey then toggleWindow() end
     end))
 
-    -- Hide theme menu on outside
     Track(UserInputService.InputBegan:Connect(function(i)
         if not themeMenu.Visible or not isPress(i) then return end
         local pos = i.Position
@@ -976,7 +917,6 @@ function OPENUI:CreateWindow(cfg)
         themeMenuToggle(false)
     end))
 
-    -- TAB SYSTEM
     local Tabs, currentTab = {}, nil
     local function setActive(name, animate)
         local changed = currentTab ~= name
@@ -1488,7 +1428,6 @@ function OPENUI:CreateWindow(cfg)
         pcall(function() BtnGui:Destroy() end)
     end
 
-    -- Heartbeat
     do
         local t = 0
         Track(RunService.Heartbeat:Connect(function(dt)
@@ -1502,7 +1441,6 @@ function OPENUI:CreateWindow(cfg)
     toggleWindow()
     table.insert(OPENUI.Windows, Window)
 
-    --==== AUTO SETTINGS TAB ====
     if cfg.AutoSettings ~= false then
         task.defer(function()
             if OPENUI.CreateSettingsTab then
@@ -1517,9 +1455,6 @@ end
 OPENUI.New = OPENUI.CreateWindow
 OPENUI.Window = OPENUI.CreateWindow
 
---==================================================================
---  AUTO SETTINGS TAB
---==================================================================
 function OPENUI:CreateSettingsTab(window, tabName, tabIcon)
     window = window or (OPENUI.Windows[#OPENUI.Windows])
     if not window then return end
@@ -1569,9 +1504,6 @@ function OPENUI:CreateSettingsTab(window, tabName, tabIcon)
     return tab
 end
 
---==================================================================
---  NOTIFICATION
---==================================================================
 task.delay(0.6, function()
     Notify("OPENUI", "Library loaded · OPENUI Edition", 4, "success")
 end)
