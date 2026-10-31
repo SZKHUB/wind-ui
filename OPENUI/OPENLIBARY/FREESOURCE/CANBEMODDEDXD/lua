@@ -1,6 +1,6 @@
 --==================================================================
 --  OPENUI Library  ·  Full Edition (rebranded)
---  Glass · Blur · 30 Themes · Toast Notifs · Sounds · Text Shadow
+--  Glass (ventana+toasts+pill) · Blur · 30 Themes · Sounds · Shadow
 --==================================================================
 local Players          = game:GetService("Players")
 local TweenService     = game:GetService("TweenService")
@@ -177,7 +177,7 @@ local function cleanup(name)
 end
 
 --==================================================================
---  SOUNDS SYSTEM (removible)
+--  SOUNDS SYSTEM
 --==================================================================
 local Sfx = {
     Enabled = true,
@@ -231,7 +231,10 @@ end
 
 OPENUI.Sounds = Sfx
 function OPENUI:SetSoundEnabled(v) Sfx.Enabled = v and true or false end
-function OPENUI:SetSoundVolume(v)  Sfx.Volume = math.clamp(tonumber(v) or 0.6, 0, 1); if uiSnd then uiSnd.Volume = Sfx.Volume end; if notifSnd then notifSnd.Volume = Sfx.Volume end end
+function OPENUI:SetSoundVolume(v)  Sfx.Volume = math.clamp(tonumber(v) or 0.6, 0, 1)
+    if uiSnd then uiSnd.Volume = Sfx.Volume end
+    if notifSnd then notifSnd.Volume = Sfx.Volume end
+end
 function OPENUI:GetSoundEnabled() return Sfx.Enabled end
 function OPENUI:GetSoundVolume()  return Sfx.Volume end
 function OPENUI:PlaySound(name) local fn = Sfx[name]; if fn then pcall(fn) end end
@@ -244,21 +247,56 @@ function OPENUI:RemoveSounds()
 end
 
 --==================================================================
---  GLASS SYSTEM (togglable)
+--  GLASS SYSTEM (global: window + toasts + pill)
 --==================================================================
 local glassEnabled      = true
 local glassTransparency = 0.55
 
+-- track active toasts for live glass re-apply
+local activeToasts = {} -- { card = CanvasGroup, tint = Frame, gloss = Frame }
+
+local function applyGlassToToast(t)
+    if not t.card or not t.card.Parent then return end
+    if glassEnabled then
+        t.card.BackgroundTransparency = glassTransparency
+        if t.tint  then t.tint.Visible  = true end
+        if t.gloss then t.gloss.Visible = true end
+    else
+        t.card.BackgroundTransparency = 0.05
+        if t.tint  then t.tint.Visible  = false end
+        if t.gloss then t.gloss.Visible = false end
+    end
+end
+
 local function setGlassEnabled(v)
     glassEnabled = v and true or false
+    -- windows
     for _, w in ipairs(OPENUI.Windows) do
         if w._applyGlass then pcall(w._applyGlass) end
     end
+    -- toasts
+    for i = #activeToasts, 1, -1 do
+        local t = activeToasts[i]
+        if not t.card or not t.card.Parent then
+            table.remove(activeToasts, i)
+        else
+            applyGlassToToast(t)
+        end
+    end
 end
+
 local function setGlassTransparency(v)
     glassTransparency = math.clamp(tonumber(v) or 0.55, 0, 0.95)
     for _, w in ipairs(OPENUI.Windows) do
         if w._applyGlass then pcall(w._applyGlass) end
+    end
+    for i = #activeToasts, 1, -1 do
+        local t = activeToasts[i]
+        if not t.card or not t.card.Parent then
+            table.remove(activeToasts, i)
+        else
+            applyGlassToToast(t)
+        end
     end
 end
 
@@ -346,7 +384,7 @@ pcall(function()
 end)
 
 --==================================================================
---  NOTIFICATIONS (Toast)
+--  NOTIFICATIONS (Toast) — glass-aware
 --==================================================================
 local ToastGui = New("ScreenGui", { Name = "OPENUI_Toasts", ResetOnSpawn = false, DisplayOrder = 20,
     ZIndexBehavior = Enum.ZIndexBehavior.Sibling })
@@ -399,18 +437,23 @@ local function Notify(title, text, dur, kind, actions)
     local wrap = New("Frame", { Size = UDim2.fromOffset(TOAST_W,0), BackgroundTransparency = 1,
         LayoutOrder = toastN, Parent = toastHolder })
     local card = New("CanvasGroup", { Size = UDim2.fromOffset(TOAST_W,h), Position = UDim2.fromOffset(offX,0),
-        GroupTransparency = 1, BackgroundColor3 = T.bg, BackgroundTransparency = 0.25, Parent = wrap })
+        GroupTransparency = 1, BackgroundColor3 = T.bg,
+        BackgroundTransparency = glassEnabled and glassTransparency or 0.05, Parent = wrap })
     Cor(card, 12)
     New("UIStroke", { Color = col, Thickness = 1.2, Transparency = 0.4, Parent = card })
     local cardScale = New("UIScale", { Scale = 0.92, Parent = card })
 
     local tintF = New("Frame", { Size = UDim2.fromScale(1,1), BackgroundColor3 = WHITE,
-        BackgroundTransparency = 0.72, Parent = card })
+        BackgroundTransparency = 0.72, Visible = glassEnabled, Parent = card })
     New("UIGradient", { Color = ColorSequence.new(T.bg:Lerp(col,0.45), T.bg), Rotation = 20, Parent = tintF })
-    local glossF = New("Frame", { Size = UDim2.fromScale(1,1), BackgroundColor3 = WHITE, Parent = card })
+    local glossF = New("Frame", { Size = UDim2.fromScale(1,1), BackgroundColor3 = WHITE,
+        Visible = glassEnabled, Parent = card })
     New("UIGradient", { Rotation = 28, Transparency = NumberSequence.new({
         NumberSequenceKeypoint.new(0,0.86), NumberSequenceKeypoint.new(0.35,0.95),
         NumberSequenceKeypoint.new(0.5,1), NumberSequenceKeypoint.new(1,0.95) }), Parent = glossF })
+
+    -- track for live glass toggle
+    table.insert(activeToasts, { card = card, tint = tintF, gloss = glossF })
 
     local badge = New("Frame", { Position = UDim2.fromOffset(9,9), Size = UDim2.fromOffset(28,28),
         BackgroundColor3 = col, BackgroundTransparency = 0.78, Parent = card })
@@ -464,6 +507,9 @@ local function Notify(title, text, dur, kind, actions)
         if gone then return end
         gone = true; obj.alive = false; toastByKey[key] = nil
         for i, f in ipairs(toastList) do if f == dismiss then table.remove(toastList, i) break end end
+        for i = #activeToasts, 1, -1 do
+            if activeToasts[i].card == card then table.remove(activeToasts, i) break end
+        end
         if progTw then progTw:Cancel() end
         TW(card, 0.3, { Position = UDim2.fromOffset(offX,0), GroupTransparency = 1 },
             Enum.EasingStyle.Quart, Enum.EasingDirection.In)
@@ -655,11 +701,13 @@ function OPENUI:CreateWindow(cfg)
     local Window = { Tabs = {}, Connections = {}, Config = cfg }
     local function Track(c) table.insert(Window.Connections, c); table.insert(conns, c); return c end
 
-    -- PILL BUTTON
+    -- PILL BUTTON (glass-aware)
+    local pillBaseTransparency = 0.4
     local pill = New("Frame", {
         Name = "HubPill", AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.new(0.5,0,0,44),
         Size = UDim2.new(0,0,0,40), AutomaticSize = Enum.AutomaticSize.X,
-        BackgroundTransparency = 0.4, Theme = { BackgroundColor3 = "bg" }, Parent = BtnGui,
+        BackgroundTransparency = glassEnabled and pillBaseTransparency or 0.05,
+        Theme = { BackgroundColor3 = "bg" }, Parent = BtnGui,
     }, {
         New("UICorner", { CornerRadius = UDim.new(1,0) }),
         New("UIPadding", { PaddingRight = UDim.new(0,4) }),
@@ -740,16 +788,18 @@ function OPENUI:CreateWindow(cfg)
         NumberSequenceKeypoint.new(0,1), NumberSequenceKeypoint.new(0.5,0.15),
         NumberSequenceKeypoint.new(1,1) }), Parent = rim })
 
-    -- GLASS APPLY
+    -- GLASS APPLY (window + pill)
     Window._applyGlass = function()
         if glassEnabled then
             win.BackgroundTransparency = glassTransparency
             tint.Visible = true; gloss.Visible = true; rim.Visible = true
             tint.BackgroundTransparency = math.clamp(glassTransparency * 0.6 + 0.36, 0, 1)
             gloss.BackgroundTransparency = 0
+            pill.BackgroundTransparency = pillBaseTransparency
         else
             win.BackgroundTransparency = 0
             tint.Visible = false; gloss.Visible = false; rim.Visible = false
+            pill.BackgroundTransparency = 0.05
         end
     end
     Window._applyGlass()
@@ -1468,7 +1518,7 @@ OPENUI.New = OPENUI.CreateWindow
 OPENUI.Window = OPENUI.CreateWindow
 
 --==================================================================
---  AUTO SETTINGS TAB (creado automáticamente por CreateWindow)
+--  AUTO SETTINGS TAB
 --==================================================================
 function OPENUI:CreateSettingsTab(window, tabName, tabIcon)
     window = window or (OPENUI.Windows[#OPENUI.Windows])
@@ -1514,27 +1564,6 @@ function OPENUI:CreateSettingsTab(window, tabName, tabIcon)
         Name = "Volume", Min = 0, Max = 100,
         Default = math.floor(Sfx.Volume*100+0.5), Suffix = "%",
         Callback = function(v) Sfx.Volume = v/100 end,
-    })
-    secSound:CreateButton({
-        Name = "Test Notification",
-        Callback = function()
-            Notify("Success", "Test notification working ✓", 4, "success",
-                { { text = "OK", cb = function() end } })
-        end,
-    })
-
-    local secDanger = tab:CreateSection("Remove")
-    secDanger:CreateButton({
-        Name = "Remove All Sounds",
-        Callback = function() OPENUI:RemoveSounds() end,
-    })
-    secDanger:CreateButton({
-        Name = "Remove Blur Completely",
-        Callback = function() OPENUI:RemoveBlur() end,
-    })
-    secDanger:CreateButton({
-        Name = "Disable Glass Effect",
-        Callback = function() setGlassEnabled(false) end,
     })
 
     return tab
