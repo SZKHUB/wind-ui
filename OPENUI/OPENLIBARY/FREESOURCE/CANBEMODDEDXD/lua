@@ -233,6 +233,7 @@ end
 local glassEnabled      = true
 local glassTransparency = 0.55
 local activeToasts      = {}
+local activePills       = {}
 
 local function applyGlassToToast(t)
     if not t.card or not t.card.Parent then return end
@@ -247,6 +248,11 @@ local function applyGlassToToast(t)
     end
 end
 
+local function applyGlassToPill(p)
+    if not p or not p.Parent then return end
+    p.BackgroundTransparency = glassEnabled and glassTransparency or 0.05
+end
+
 local function setGlassEnabled(v)
     glassEnabled = v and true or false
     for _, w in ipairs(OPENUI.Windows) do
@@ -254,11 +260,13 @@ local function setGlassEnabled(v)
     end
     for i = #activeToasts, 1, -1 do
         local t = activeToasts[i]
-        if not t.card or not t.card.Parent then
-            table.remove(activeToasts, i)
-        else
-            applyGlassToToast(t)
-        end
+        if not t.card or not t.card.Parent then table.remove(activeToasts, i)
+        else applyGlassToToast(t) end
+    end
+    for i = #activePills, 1, -1 do
+        local p = activePills[i]
+        if not p or not p.Parent then table.remove(activePills, i)
+        else applyGlassToPill(p) end
     end
 end
 
@@ -269,11 +277,13 @@ local function setGlassTransparency(v)
     end
     for i = #activeToasts, 1, -1 do
         local t = activeToasts[i]
-        if not t.card or not t.card.Parent then
-            table.remove(activeToasts, i)
-        else
-            applyGlassToToast(t)
-        end
+        if not t.card or not t.card.Parent then table.remove(activeToasts, i)
+        else applyGlassToToast(t) end
+    end
+    for i = #activePills, 1, -1 do
+        local p = activePills[i]
+        if not p or not p.Parent then table.remove(activePills, i)
+        else applyGlassToPill(p) end
     end
 end
 
@@ -653,11 +663,10 @@ function OPENUI:CreateWindow(cfg)
     local Window = { Tabs = {}, Connections = {}, Config = cfg }
     local function Track(c) table.insert(Window.Connections, c); table.insert(conns, c); return c end
 
-    local pillBaseTransparency = 0.4
     local pill = New("Frame", {
         Name = "HubPill", AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.new(0.5,0,0,44),
         Size = UDim2.new(0,0,0,40), AutomaticSize = Enum.AutomaticSize.X,
-        BackgroundTransparency = glassEnabled and pillBaseTransparency or 0.05,
+        BackgroundTransparency = glassEnabled and glassTransparency or 0.05,
         Theme = { BackgroundColor3 = "bg" }, Parent = BtnGui,
     }, {
         New("UICorner", { CornerRadius = UDim.new(1,0) }),
@@ -665,6 +674,7 @@ function OPENUI:CreateWindow(cfg)
         New("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal,
             VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }),
     })
+    table.insert(activePills, pill)
     New("UIGradient", { Color = ColorSequence.new(WHITE, Color3.fromRGB(190,190,190)), Rotation = 90, Parent = pill })
     local pillScale = New("UIScale", { Parent = pill })
     local pillStroke = New("UIStroke", { Thickness = 2, Color = WHITE, Parent = pill })
@@ -744,7 +754,7 @@ function OPENUI:CreateWindow(cfg)
             tint.Visible = true; gloss.Visible = true; rim.Visible = true
             tint.BackgroundTransparency = math.clamp(glassTransparency * 0.6 + 0.36, 0, 1)
             gloss.BackgroundTransparency = 0
-            pill.BackgroundTransparency = pillBaseTransparency
+            pill.BackgroundTransparency = glassTransparency
         else
             win.BackgroundTransparency = 0
             tint.Visible = false; gloss.Visible = false; rim.Visible = false
@@ -1423,6 +1433,7 @@ function OPENUI:CreateWindow(cfg)
             openWindows = math.max(0, openWindows - 1)
             updateBlurState()
         end
+        for i, p in ipairs(activePills) do if p == pill then table.remove(activePills, i) break end end
         for i, w in ipairs(OPENUI.Windows) do if w == self then table.remove(OPENUI.Windows, i) break end end
         pcall(function() GUI:Destroy() end)
         pcall(function() BtnGui:Destroy() end)
