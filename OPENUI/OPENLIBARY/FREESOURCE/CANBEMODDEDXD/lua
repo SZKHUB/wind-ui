@@ -1,3 +1,7 @@
+--==================================================================
+--  OPENUI Library  ·  Full Edition (rebranded)
+--  Glass · Blur · 30 Themes · Toast Notifs · Sounds · Text Shadow
+--==================================================================
 local Players          = game:GetService("Players")
 local TweenService     = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -13,14 +17,15 @@ local CoreGui          = game:GetService("CoreGui")
 local LP     = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
-local SZK = { Themes = {}, Windows = {}, Flags = {}, ConfigFolder = "SZK_Configs", CurrentTheme = nil, Icons = {} }
+local OPENUI = { Themes = {}, Windows = {}, Flags = {}, ConfigFolder = "OPENUI_Configs", CurrentTheme = nil, Icons = {} }
+local SZK    = OPENUI -- alias legacy
 
 local FONT       = 12
 local FONT_TITLE = 15
 local WHITE      = Color3.new(1,1,1)
 
 --==================================================================
---  THEME SYSTEM (30 temas OPENUI)
+--  THEME SYSTEM (30 temas)
 --==================================================================
 local function derive(accH, bgH, lightH, secH, danger)
     local acc   = Color3.fromHex(accH)
@@ -39,71 +44,63 @@ local function derive(accH, bgH, lightH, secH, danger)
     }
 end
 
-SZK.Themes.Aqua     = derive("4FD8FF","081C28","EAFBFF","9BF3FF",Color3.fromRGB(255,90,110))
-SZK.Themes.Toxic    = derive("7CFF4F","0B120A","DFF5D4","3FBF2A",Color3.fromRGB(190,60,60))
-SZK.Themes.Crystal  = derive("EAF6FF","0E141A","FFFFFF","BFE9FF",Color3.fromRGB(255,90,110))
-SZK.Themes.Sakura   = derive("FF8FB8","1A0F16","FFE8F1","FFC2DA",Color3.fromRGB(230,60,90))
-SZK.Themes.Nebula   = derive("A78BFA","110B20","F0EAFE","8060D9",Color3.fromRGB(255,90,140))
-SZK.Themes.Crimson  = derive("FF416C","1C080E","FFE8ED","D92650",Color3.fromRGB(255,170,80))
-SZK.Themes.Cyber    = derive("00F5FF","071519","E0FFFF","00AFC4",Color3.fromRGB(255,70,100))
-SZK.Themes.Phantom  = derive("6875FF","0B0D20","E8EAFF","444FC9",Color3.fromRGB(255,80,120))
-SZK.Themes.Inferno  = derive("FF7628","1C0D07","FFF0E5","D94C18",Color3.fromRGB(255,190,60))
-SZK.Themes.Emerald  = derive("00D6A0","071A15","DFFFF4","009B73",Color3.fromRGB(255,90,110))
-SZK.Themes.Midnight = derive("526DFF","080B18","E4E9FF","3449BD",Color3.fromRGB(255,100,130))
-SZK.Themes.Royal    = derive("9D65FF","130B20","F0E5FF","7040C9",Color3.fromRGB(255,190,80))
-SZK.Themes.Golden   = derive("FFD166","1B1408","FFF5D6","C99A32",Color3.fromRGB(220,75,75))
-SZK.Themes.Ocean    = derive("00B4D8","07151C","DDF8FF","007FA3",Color3.fromRGB(255,100,120))
-SZK.Themes.Blood    = derive("FF1744","19060B","FFE5EA","B80029",Color3.fromRGB(255,170,70))
-SZK.Themes.Lavender = derive("C4A1FF","171020","F4EAFF","9570D6",Color3.fromRGB(255,110,150))
-SZK.Themes.Matrix   = derive("00FF88","06150D","DFFFF0","00A85A",Color3.fromRGB(255,80,100))
-SZK.Themes.Arctic   = derive("80DFFF","091722","E8FAFF","399DC9",Color3.fromRGB(255,120,140))
-SZK.Themes.Ruby     = derive("FF5277","1A0910","FFE8EF","C72D53",Color3.fromRGB(255,180,70))
-SZK.Themes.Electric = derive("536DFF","090D20","E8ECFF","3048D0",Color3.fromRGB(255,90,110))
-SZK.Themes.Mint     = derive("65FFD6","081A17","E2FFF6","36BFA0",Color3.fromRGB(255,100,120))
-SZK.Themes.Phoenix  = derive("FF9D42","1C1008","FFF0DD","D66A20",Color3.fromRGB(255,70,90))
-SZK.Themes.Hologram = derive("FF66E8","190B19","FFE8FC","C638B4",Color3.fromRGB(100,220,255))
-SZK.Themes.Void     = derive("B04DFF","0C0715","F0E5FF","7628B8",Color3.fromRGB(255,80,110))
-SZK.Themes.Solar    = derive("FFE45E","191607","FFF9DC","C5A629",Color3.fromRGB(255,100,100))
-SZK.Themes.Glacier  = derive("A5F3FC","09191E","ECFEFF","48BFCF",Color3.fromRGB(255,120,150))
-SZK.Themes.Magma    = derive("FF4B36","1B0907","FFEAE5","C92D20",Color3.fromRGB(255,180,60))
-SZK.Themes.Amethyst = derive("B388FF","140D20","F1E9FF","8055CC",Color3.fromRGB(255,100,130))
-SZK.Themes.Slime    = derive("C6FF00","141A06","F2FFD9","85B800",Color3.fromRGB(255,90,90))
-SZK.Themes.Rose     = derive("FF6F91","1A0B11","FFEAF0","D84268",Color3.fromRGB(255,190,100))
+OPENUI.Themes.Aqua     = derive("4FD8FF","081C28","EAFBFF","9BF3FF",Color3.fromRGB(255,90,110))
+OPENUI.Themes.Toxic    = derive("7CFF4F","0B120A","DFF5D4","3FBF2A",Color3.fromRGB(190,60,60))
+OPENUI.Themes.Crystal  = derive("EAF6FF","0E141A","FFFFFF","BFE9FF",Color3.fromRGB(255,90,110))
+OPENUI.Themes.Sakura   = derive("FF8FB8","1A0F16","FFE8F1","FFC2DA",Color3.fromRGB(230,60,90))
+OPENUI.Themes.Nebula   = derive("A78BFA","110B20","F0EAFE","8060D9",Color3.fromRGB(255,90,140))
+OPENUI.Themes.Crimson  = derive("FF416C","1C080E","FFE8ED","D92650",Color3.fromRGB(255,170,80))
+OPENUI.Themes.Cyber    = derive("00F5FF","071519","E0FFFF","00AFC4",Color3.fromRGB(255,70,100))
+OPENUI.Themes.Phantom  = derive("6875FF","0B0D20","E8EAFF","444FC9",Color3.fromRGB(255,80,120))
+OPENUI.Themes.Inferno  = derive("FF7628","1C0D07","FFF0E5","D94C18",Color3.fromRGB(255,190,60))
+OPENUI.Themes.Emerald  = derive("00D6A0","071A15","DFFFF4","009B73",Color3.fromRGB(255,90,110))
+OPENUI.Themes.Midnight = derive("526DFF","080B18","E4E9FF","3449BD",Color3.fromRGB(255,100,130))
+OPENUI.Themes.Royal    = derive("9D65FF","130B20","F0E5FF","7040C9",Color3.fromRGB(255,190,80))
+OPENUI.Themes.Golden   = derive("FFD166","1B1408","FFF5D6","C99A32",Color3.fromRGB(220,75,75))
+OPENUI.Themes.Ocean    = derive("00B4D8","07151C","DDF8FF","007FA3",Color3.fromRGB(255,100,120))
+OPENUI.Themes.Blood    = derive("FF1744","19060B","FFE5EA","B80029",Color3.fromRGB(255,170,70))
+OPENUI.Themes.Lavender = derive("C4A1FF","171020","F4EAFF","9570D6",Color3.fromRGB(255,110,150))
+OPENUI.Themes.Matrix   = derive("00FF88","06150D","DFFFF0","00A85A",Color3.fromRGB(255,80,100))
+OPENUI.Themes.Arctic   = derive("80DFFF","091722","E8FAFF","399DC9",Color3.fromRGB(255,120,140))
+OPENUI.Themes.Ruby     = derive("FF5277","1A0910","FFE8EF","C72D53",Color3.fromRGB(255,180,70))
+OPENUI.Themes.Electric = derive("536DFF","090D20","E8ECFF","3048D0",Color3.fromRGB(255,90,110))
+OPENUI.Themes.Mint     = derive("65FFD6","081A17","E2FFF6","36BFA0",Color3.fromRGB(255,100,120))
+OPENUI.Themes.Phoenix  = derive("FF9D42","1C1008","FFF0DD","D66A20",Color3.fromRGB(255,70,90))
+OPENUI.Themes.Hologram = derive("FF66E8","190B19","FFE8FC","C638B4",Color3.fromRGB(100,220,255))
+OPENUI.Themes.Void     = derive("B04DFF","0C0715","F0E5FF","7628B8",Color3.fromRGB(255,80,110))
+OPENUI.Themes.Solar    = derive("FFE45E","191607","FFF9DC","C5A629",Color3.fromRGB(255,100,100))
+OPENUI.Themes.Glacier  = derive("A5F3FC","09191E","ECFEFF","48BFCF",Color3.fromRGB(255,120,150))
+OPENUI.Themes.Magma    = derive("FF4B36","1B0907","FFEAE5","C92D20",Color3.fromRGB(255,180,60))
+OPENUI.Themes.Amethyst = derive("B388FF","140D20","F1E9FF","8055CC",Color3.fromRGB(255,100,130))
+OPENUI.Themes.Slime    = derive("C6FF00","141A06","F2FFD9","85B800",Color3.fromRGB(255,90,90))
+OPENUI.Themes.Rose     = derive("FF6F91","1A0B11","FFEAF0","D84268",Color3.fromRGB(255,190,100))
 
-SZK.ThemeOrder = { "Aqua","Toxic","Crystal","Sakura","Nebula","Crimson","Cyber","Phantom",
+OPENUI.ThemeOrder = { "Aqua","Toxic","Crystal","Sakura","Nebula","Crimson","Cyber","Phantom",
     "Inferno","Emerald","Midnight","Royal","Golden","Ocean","Blood","Lavender","Matrix","Arctic",
     "Ruby","Electric","Mint","Phoenix","Hologram","Void","Solar","Glacier","Magma","Amethyst","Slime","Rose" }
 
 local currentThemeName = "Aqua"
 local T = {}
-for k, v in pairs(SZK.Themes.Aqua) do T[k] = v end
-SZK.CurrentTheme = T
+for k, v in pairs(OPENUI.Themes.Aqua) do T[k] = v end
+OPENUI.CurrentTheme = T
 
 --==================================================================
 --  GLOBAL STATE
 --==================================================================
-local alive    = true
-local bound    = {}
-local onTheme  = {}
-local conns    = {}
-local textObjs = {}
-local textShadowOn = true
-local TEXT_SHADOW  = 0.65
+local alive, bound, onTheme, conns = true, {}, {}, {}
+local textObjs, textShadowOn, TEXT_SHADOW = {}, true, 0.65
 
 local function setTextShadow(v)
     textShadowOn = v and true or false
     for i = #textObjs, 1, -1 do
         local o = textObjs[i]
-        if o.Parent == nil then
-            table.remove(textObjs, i)
-        else
-            o.TextStrokeTransparency = textShadowOn and TEXT_SHADOW or 1
-        end
+        if o.Parent == nil then table.remove(textObjs, i)
+        else o.TextStrokeTransparency = textShadowOn and TEXT_SHADOW or 1 end
     end
 end
-function SZK:SetTextShadow(v) setTextShadow(v) end
-function SZK:GetTextShadow() return textShadowOn end
-function SZK:ToggleTextShadow() setTextShadow(not textShadowOn) return textShadowOn end
+function OPENUI:SetTextShadow(v) setTextShadow(v) end
+function OPENUI:GetTextShadow() return textShadowOn end
+function OPENUI:ToggleTextShadow() setTextShadow(not textShadowOn); return textShadowOn end
 
 --==================================================================
 --  UTILS
@@ -125,9 +122,7 @@ local function New(cls, props, children)
             table.insert(bound, { o, prop, role })
         end
     end
-    if o:IsA("GuiObject") and (not props or not props.BorderSizePixel) then
-        o.BorderSizePixel = 0
-    end
+    if o:IsA("GuiObject") and (not props or not props.BorderSizePixel) then o.BorderSizePixel = 0 end
     if (o:IsA("TextLabel") or o:IsA("TextButton") or o:IsA("TextBox"))
         and (not props or not props.TextStrokeTransparency) then
         o.TextStrokeColor3 = Color3.new(0,0,0)
@@ -164,7 +159,7 @@ local function safe(fn, ...)
     local a = table.pack(...)
     task.spawn(function()
         local ok, err = pcall(fn, table.unpack(a, 1, a.n))
-        if not ok then warn("[SZK] "..tostring(err)) end
+        if not ok then warn("[OPENUI] "..tostring(err)) end
     end)
 end
 local function safeParent(gui)
@@ -182,7 +177,7 @@ local function cleanup(name)
 end
 
 --==================================================================
---  SOUNDS SYSTEM
+--  SOUNDS SYSTEM (removible)
 --==================================================================
 local Sfx = {
     Enabled = true,
@@ -194,10 +189,12 @@ local Sfx = {
 }
 
 pcall(function()
-    local old = SoundService:FindFirstChild("SZK_Sounds")
-    if old then old:Destroy() end
+    for _, n in ipairs({ "OPENUI_Sounds", "SZK_Sounds" }) do
+        local old = SoundService:FindFirstChild(n)
+        if old then old:Destroy() end
+    end
 end)
-local sfxFolder = Instance.new("Folder"); sfxFolder.Name = "SZK_Sounds"; sfxFolder.Parent = SoundService
+local sfxFolder = Instance.new("Folder"); sfxFolder.Name = "OPENUI_Sounds"; sfxFolder.Parent = SoundService
 
 local function mkSound(id)
     local s = Instance.new("Sound"); s.SoundId = id; s.Volume = Sfx.Volume; s.Parent = sfxFolder; return s
@@ -209,6 +206,8 @@ task.spawn(function() pcall(function() ContentProvider:PreloadAsync({uiSnd, noti
 local lastPlay = {}
 local function playS(base, key, spMin, spMax, vMul)
     if not Sfx.Enabled or not alive then return end
+    if not sfxFolder or not sfxFolder.Parent then return end
+    if not base or not base.Parent then return end
     local now = os.clock()
     if lastPlay[key] and now - lastPlay[key] < 0.04 then return end
     lastPlay[key] = now
@@ -230,51 +229,87 @@ function Sfx.Notify(kind)
     playS(notifSnd, "notif", sp, sp, 1.0)
 end
 
-SZK.Sounds = Sfx
-function SZK:SetSoundEnabled(v) Sfx.Enabled = v and true or false end
-function SZK:SetSoundVolume(v)  Sfx.Volume = math.clamp(tonumber(v) or 0.6, 0, 1) end
-function SZK:GetSoundEnabled() return Sfx.Enabled end
-function SZK:GetSoundVolume()  return Sfx.Volume end
-function SZK:PlaySound(name)
-    local fn = Sfx[name]
-    if fn then pcall(fn) end
+OPENUI.Sounds = Sfx
+function OPENUI:SetSoundEnabled(v) Sfx.Enabled = v and true or false end
+function OPENUI:SetSoundVolume(v)  Sfx.Volume = math.clamp(tonumber(v) or 0.6, 0, 1); if uiSnd then uiSnd.Volume = Sfx.Volume end; if notifSnd then notifSnd.Volume = Sfx.Volume end end
+function OPENUI:GetSoundEnabled() return Sfx.Enabled end
+function OPENUI:GetSoundVolume()  return Sfx.Volume end
+function OPENUI:PlaySound(name) local fn = Sfx[name]; if fn then pcall(fn) end end
+function OPENUI:RemoveSounds()
+    Sfx.Enabled = false
+    if sfxFolder then pcall(function() sfxFolder:Destroy() end) end
+    sfxFolder = nil
+    uiSnd = nil
+    notifSnd = nil
 end
 
 --==================================================================
---  BLUR (global)
+--  GLASS SYSTEM (togglable)
 --==================================================================
-local blurFx       = nil
-local blurEnabled  = true
-local openWindows  = 0
+local glassEnabled      = true
+local glassTransparency = 0.55
+
+local function setGlassEnabled(v)
+    glassEnabled = v and true or false
+    for _, w in ipairs(OPENUI.Windows) do
+        if w._applyGlass then pcall(w._applyGlass) end
+    end
+end
+local function setGlassTransparency(v)
+    glassTransparency = math.clamp(tonumber(v) or 0.55, 0, 0.95)
+    for _, w in ipairs(OPENUI.Windows) do
+        if w._applyGlass then pcall(w._applyGlass) end
+    end
+end
+
+function OPENUI:SetGlassEnabled(v) setGlassEnabled(v) end
+function OPENUI:GetGlassEnabled() return glassEnabled end
+function OPENUI:SetGlassTransparency(v) setGlassTransparency(v) end
+function OPENUI:GetGlassTransparency() return glassTransparency end
+
+--==================================================================
+--  BLUR (global, removible)
+--==================================================================
+local blurFx      = nil
+local blurEnabled = true
+local openWindows = 0
 
 local function ensureBlur()
     if not blurFx then
         blurFx = Instance.new("BlurEffect")
-        blurFx.Name = "SZK_Blur"
+        blurFx.Name = "OPENUI_Blur"
         blurFx.Size = 0
         blurFx.Parent = Lighting
     end
 end
 local function updateBlurState()
+    if not blurEnabled then
+        if blurFx then TW(blurFx, 0.35, { Size = 0 }) end
+        return
+    end
     ensureBlur()
-    local target = (blurEnabled and openWindows > 0) and 16 or 0
+    local target = (openWindows > 0) and 16 or 0
     TW(blurFx, 0.35, { Size = target })
 end
-function SZK:SetBlurEnabled(v) blurEnabled = v and true or false; updateBlurState() end
-function SZK:GetBlurEnabled() return blurEnabled end
+function OPENUI:SetBlurEnabled(v) blurEnabled = v and true or false; updateBlurState() end
+function OPENUI:GetBlurEnabled() return blurEnabled end
+function OPENUI:RemoveBlur()
+    blurEnabled = false
+    if blurFx then pcall(function() blurFx:Destroy() end); blurFx = nil end
+end
 
 --==================================================================
 --  ICONS
 --==================================================================
-SZK.IconSources = {
+OPENUI.IconSources = {
     "https://raw.githubusercontent.com/SZKHUB/SZKSCRIPT/refs/heads/main/OLDICONS1",
     "https://raw.githubusercontent.com/SZKHUB/SZKSCRIPT/refs/heads/main/NEWICONS1",
 }
 pcall(function()
-    for _, url in ipairs(SZK.IconSources) do
+    for _, url in ipairs(OPENUI.IconSources) do
         local ok, data = pcall(function() return loadstring(game:HttpGet(url))() end)
         if ok and type(data) == "table" then
-            for name, id in pairs(data) do SZK.Icons[name] = id end
+            for name, id in pairs(data) do OPENUI.Icons[name] = id end
         end
     end
 end)
@@ -303,7 +338,7 @@ end
 --==================================================================
 --  CLEANUP OLD
 --==================================================================
-for _, n in ipairs({"SZKLibrary","SZKWindow","SZK_Button","SZK_Toasts","OPENUI","OPENUI_Button","OPENUI_Toasts"}) do cleanup(n) end
+for _, n in ipairs({"OPENUI","OPENUI_Button","OPENUI_Toasts","OPENUIWindow","SZKLibrary","SZKWindow","SZK_Button","SZK_Toasts"}) do cleanup(n) end
 pcall(function()
     for _, n in ipairs({"OPENUI_Blur","SZK_Blur"}) do
         local b = Lighting:FindFirstChild(n); if b then b:Destroy() end
@@ -311,9 +346,9 @@ pcall(function()
 end)
 
 --==================================================================
---  NOTIFICATIONS (Toast OPENUI)
+--  NOTIFICATIONS (Toast)
 --==================================================================
-local ToastGui = New("ScreenGui", { Name = "SZK_Toasts", ResetOnSpawn = false, DisplayOrder = 20,
+local ToastGui = New("ScreenGui", { Name = "OPENUI_Toasts", ResetOnSpawn = false, DisplayOrder = 20,
     ZIndexBehavior = Enum.ZIndexBehavior.Sibling })
 pcall(function() if syn and syn.protect_gui then syn.protect_gui(ToastGui) end end)
 safeParent(ToastGui)
@@ -480,16 +515,16 @@ local function Notify(title, text, dur, kind, actions)
     startProg(dur)
 end
 
-function SZK:Notify(cfg)
+function OPENUI:Notify(cfg)
     cfg = cfg or {}
     local map = { Success="success", Error="error", Warning="warn", Info="info" }
     Notify(cfg.Title or "Notice", cfg.Content or cfg.Text or "", cfg.Duration or 4,
-        map[cfg.Type] or (cfg.Type and cfg.Type:lower()) or "info", cfg.Buttons)
+        map[cfg.Type] or (cfg.Type and tostring(cfg.Type):lower()) or "info", cfg.Buttons)
 end
-function SZK:Success(t,c,d) return self:Notify({Title=t or "Success", Content=c or "", Type="Success", Duration=d or 3}) end
-function SZK:Error(t,c,d)   return self:Notify({Title=t or "Error",   Content=c or "", Type="Error",   Duration=d or 3.5}) end
-function SZK:Warn(t,c,d)    return self:Notify({Title=t or "Warning", Content=c or "", Type="Warning", Duration=d or 3}) end
-function SZK:Info(t,c,d)    return self:Notify({Title=t or "Info",    Content=c or "", Type="Info",    Duration=d or 3}) end
+function OPENUI:Success(t,c,d) return self:Notify({Title=t or "Success", Content=c or "", Type="Success", Duration=d or 3}) end
+function OPENUI:Error(t,c,d)   return self:Notify({Title=t or "Error",   Content=c or "", Type="Error",   Duration=d or 3.5}) end
+function OPENUI:Warn(t,c,d)    return self:Notify({Title=t or "Warning", Content=c or "", Type="Warning", Duration=d or 3}) end
+function OPENUI:Info(t,c,d)    return self:Notify({Title=t or "Info",    Content=c or "", Type="Info",    Duration=d or 3}) end
 
 --==================================================================
 --  INTERACTION HELPERS
@@ -540,10 +575,10 @@ end
 --  THEME APPLY
 --==================================================================
 local function applyThemeByName(name, silent)
-    local new = SZK.Themes[name]; if not new then return end
+    local new = OPENUI.Themes[name]; if not new then return end
     for k, v in pairs(new) do T[k] = v end
     currentThemeName = name
-    SZK.CurrentTheme = T
+    OPENUI.CurrentTheme = T
     for i = #bound, 1, -1 do
         local b = bound[i]
         if b[1].Parent == nil then table.remove(bound, i)
@@ -552,41 +587,41 @@ local function applyThemeByName(name, silent)
     for _, fn in ipairs(onTheme) do pcall(fn) end
     if not silent then Sfx.Tick() end
 end
-function SZK:SetTheme(name) applyThemeByName(name) end
-function SZK:GetThemes() return SZK.Themes end
-function SZK:GetFlag(name) return SZK.Flags[name] end
-function SZK:SetFlag(name, v) SZK.Flags[name] = v end
+function OPENUI:SetTheme(name) applyThemeByName(name) end
+function OPENUI:GetThemes() return OPENUI.Themes end
+function OPENUI:GetFlag(name) return OPENUI.Flags[name] end
+function OPENUI:SetFlag(name, v) OPENUI.Flags[name] = v end
 
 --==================================================================
 --  CONFIG SAVE/LOAD
 --==================================================================
-function SZK:SaveConfig(name)
+function OPENUI:SaveConfig(name)
     name = tostring(name or "default")
     if not (writefile and HttpService) then return false end
-    pcall(function() if makefolder and isfolder and not isfolder(SZK.ConfigFolder) then makefolder(SZK.ConfigFolder) end end)
+    pcall(function() if makefolder and isfolder and not isfolder(OPENUI.ConfigFolder) then makefolder(OPENUI.ConfigFolder) end end)
     local payload = {}
-    for k, v in pairs(SZK.Flags) do
+    for k, v in pairs(OPENUI.Flags) do
         if typeof(v) == "Color3" then payload[k] = {__color=true,R=v.R,G=v.G,B=v.B}
         elseif typeof(v) == "EnumItem" then payload[k] = {__enum=true,EnumType=tostring(v.EnumType),Name=v.Name}
         else payload[k] = v end
     end
     local ok, enc = pcall(function() return HttpService:JSONEncode(payload) end)
     if not ok then return false end
-    return pcall(function() writefile(SZK.ConfigFolder.."/"..name..".json", enc) end)
+    return pcall(function() writefile(OPENUI.ConfigFolder.."/"..name..".json", enc) end)
 end
-function SZK:LoadConfig(name)
+function OPENUI:LoadConfig(name)
     name = tostring(name or "default")
     if not (readfile and isfile and HttpService) then return false end
-    local path = SZK.ConfigFolder.."/"..name..".json"
+    local path = OPENUI.ConfigFolder.."/"..name..".json"
     if not isfile(path) then return false end
     local ok, raw = pcall(function() return readfile(path) end)
     if not ok or not raw then return false end
     local dOk, data = pcall(function() return HttpService:JSONDecode(raw) end)
     if not dOk or type(data) ~= "table" then return false end
     for k, v in pairs(data) do
-        if type(v) == "table" and v.__color then SZK.Flags[k] = Color3.new(v.R,v.G,v.B)
-        elseif type(v) == "table" and v.__enum then local r = Enum[v.EnumType]; SZK.Flags[k] = (r and r[v.Name]) or v
-        else SZK.Flags[k] = v end
+        if type(v) == "table" and v.__color then OPENUI.Flags[k] = Color3.new(v.R,v.G,v.B)
+        elseif type(v) == "table" and v.__enum then local r = Enum[v.EnumType]; OPENUI.Flags[k] = (r and r[v.Name]) or v
+        else OPENUI.Flags[k] = v end
     end
     return true
 end
@@ -594,22 +629,20 @@ end
 --==================================================================
 --  CREATE WINDOW
 --==================================================================
-function SZK:CreateWindow(cfg)
+function OPENUI:CreateWindow(cfg)
     cfg = cfg or {}
     local themeName = cfg.Theme or "Aqua"
-    if not SZK.Themes[themeName] then themeName = "Aqua" end
+    if not OPENUI.Themes[themeName] then themeName = "Aqua" end
     applyThemeByName(themeName, true)
 
     local winW, winH = 620, 380
     if typeof(cfg.Size) == "Vector2" then winW, winH = cfg.Size.X, cfg.Size.Y end
-    if type(cfg.Size) == "table" and cfg.Size.X then
-        winW, winH = tonumber(cfg.Size.X) or 620, tonumber(cfg.Size.Y) or 380
-    end
+    if type(cfg.Size) == "table" and cfg.Size.X then winW, winH = tonumber(cfg.Size.X) or 620, tonumber(cfg.Size.Y) or 380 end
 
     local toggleKey = cfg.ToggleKey or Enum.KeyCode.RightShift
     if type(toggleKey) == "string" then toggleKey = Enum.KeyCode[toggleKey] or Enum.KeyCode.RightShift end
 
-    local guiName = "SZKWindow_"..tostring(math.random(1,99999))
+    local guiName = "OPENUIWindow_"..tostring(math.random(1,99999))
     local GUI = New("ScreenGui", { Name = guiName, ResetOnSpawn = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling })
     pcall(function() if syn and syn.protect_gui then syn.protect_gui(GUI) end end)
     safeParent(GUI)
@@ -675,7 +708,7 @@ function SZK:CreateWindow(cfg)
     if Camera then Track(Camera:GetPropertyChangedSignal("ViewportSize"):Connect(fitWindow)) end
 
     local win = New("CanvasGroup", { AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.5),
-        Size = UDim2.fromOffset(winW, winH), BackgroundTransparency = 0.55, GroupTransparency = 1,
+        Size = UDim2.fromOffset(winW, winH), BackgroundTransparency = glassTransparency, GroupTransparency = 1,
         Theme = { BackgroundColor3 = "bg" }, Parent = shell })
     Cor(win, 14)
     local winScale = New("UIScale", { Scale = 0.9, Parent = win })
@@ -707,13 +740,27 @@ function SZK:CreateWindow(cfg)
         NumberSequenceKeypoint.new(0,1), NumberSequenceKeypoint.new(0.5,0.15),
         NumberSequenceKeypoint.new(1,1) }), Parent = rim })
 
+    -- GLASS APPLY
+    Window._applyGlass = function()
+        if glassEnabled then
+            win.BackgroundTransparency = glassTransparency
+            tint.Visible = true; gloss.Visible = true; rim.Visible = true
+            tint.BackgroundTransparency = math.clamp(glassTransparency * 0.6 + 0.36, 0, 1)
+            gloss.BackgroundTransparency = 0
+        else
+            win.BackgroundTransparency = 0
+            tint.Visible = false; gloss.Visible = false; rim.Visible = false
+        end
+    end
+    Window._applyGlass()
+
     -- TITLE BAR
     local titleBar = New("Frame", { Position = UDim2.new(0,8,0,8), Size = UDim2.new(1,-16,0,42),
         BackgroundTransparency = 0.84, Theme = { BackgroundColor3 = "card" }, Parent = win })
     Cor(titleBar, 11); Stk(titleBar, "edge", 1, 0.7)
 
     local titleLabel = New("TextLabel", { Position = UDim2.new(0,15,0,0), Size = UDim2.new(1,-220,1,0),
-        BackgroundTransparency = 1, Text = cfg.Title or "SZK", Font = Enum.Font.GothamBold,
+        BackgroundTransparency = 1, Text = cfg.Title or "OPENUI", Font = Enum.Font.GothamBold,
         TextSize = FONT_TITLE, TextXAlignment = Enum.TextXAlignment.Left,
         Theme = { TextColor3 = "text" }, Parent = titleBar })
 
@@ -760,13 +807,13 @@ function SZK:CreateWindow(cfg)
     List(themeScroll, 5)
     table.insert(onTheme, function() themeScroll.ScrollBarImageColor3 = T.acc end)
 
-    for idx, tn in ipairs(SZK.ThemeOrder) do
+    for idx, tn in ipairs(OPENUI.ThemeOrder) do
         local opt = New("TextButton", { Size = UDim2.new(1,0,0,28), BackgroundTransparency = 0.7,
             Text = "", ZIndex = 62, LayoutOrder = idx, Theme = { BackgroundColor3 = "panel" }, Parent = themeScroll })
         Cor(opt, 8)
         New("UIStroke", { Color = T.border, Thickness = 1.2, Transparency = 0.55, Parent = opt })
         local dot = New("Frame", { Size = UDim2.fromOffset(12,12), Position = UDim2.new(0,10,0.5,0),
-            AnchorPoint = Vector2.new(0,0.5), BackgroundColor3 = SZK.Themes[tn].acc, ZIndex = 63, Parent = opt })
+            AnchorPoint = Vector2.new(0,0.5), BackgroundColor3 = OPENUI.Themes[tn].acc, ZIndex = 63, Parent = opt })
         Circle(dot)
         New("TextLabel", { Size = UDim2.new(1,-32,1,0), Position = UDim2.new(0,30,0,0),
             BackgroundTransparency = 1, Text = tn, Font = Enum.Font.GothamBold,
@@ -798,7 +845,7 @@ function SZK:CreateWindow(cfg)
         themeMenuToggle(not (themeMenu.Visible and themeMenu.GroupTransparency < 0.5))
     end)
 
-    -- OPEN/CLOSE
+    -- OPEN / CLOSE
     local winOpen = false
     local openToken = 0
     local function toggleWindow()
@@ -867,7 +914,7 @@ function SZK:CreateWindow(cfg)
         if not gp and i.KeyCode == toggleKey then toggleWindow() end
     end))
 
-    -- Hide menu on outside
+    -- Hide theme menu on outside
     Track(UserInputService.InputBegan:Connect(function(i)
         if not themeMenu.Visible or not isPress(i) then return end
         local pos = i.Position
@@ -971,7 +1018,7 @@ function SZK:CreateWindow(cfg)
                 local default = c.Default; if default == nil then default = c.Value or false end
                 local cb = c.Callback or function() end
                 local flag = c.Flag
-                if flag and SZK.Flags[flag] ~= nil then default = SZK.Flags[flag] end
+                if flag and OPENUI.Flags[flag] ~= nil then default = OPENUI.Flags[flag] end
                 local h = (c.Desc and c.Desc ~= "") and 78 or 36
                 local row = buildCard(h)
                 if not c.Desc or c.Desc == "" then
@@ -992,7 +1039,7 @@ function SZK:CreateWindow(cfg)
                     BackgroundColor3 = WHITE, Parent = track })
                 Circle(knob)
                 local state = default
-                if flag then SZK.Flags[flag] = state end
+                if flag then OPENUI.Flags[flag] = state end
                 local function paint(anim)
                     local t = anim and 0.25 or 0
                     TW(track, t, { BackgroundColor3 = state and T.acc or T.panel,
@@ -1005,11 +1052,11 @@ function SZK:CreateWindow(cfg)
                 table.insert(onTheme, function() paint(true) end)
                 hit.MouseButton1Click:Connect(function()
                     state = not state
-                    if flag then SZK.Flags[flag] = state end
+                    if flag then OPENUI.Flags[flag] = state end
                     paint(true); safe(cb, state)
                 end)
                 local obj = {}
-                function obj:Set(v) state = v and true or false; if flag then SZK.Flags[flag] = state end; paint(true); safe(cb, state) end
+                function obj:Set(v) state = v and true or false; if flag then OPENUI.Flags[flag] = state end; paint(true); safe(cb, state) end
                 function obj:Get() return state end
                 return obj
             end
@@ -1120,7 +1167,7 @@ function SZK:CreateWindow(cfg)
                 local cb = c.Callback or function() end
                 local flag = c.Flag
                 local selected = default
-                if flag and SZK.Flags[flag] ~= nil then selected = SZK.Flags[flag] end
+                if flag and OPENUI.Flags[flag] ~= nil then selected = OPENUI.Flags[flag] end
                 local row = buildCard(36); row.ClipsDescendants = true
                 local hit = RowHit(row); hit.Size = UDim2.new(1,0,0,36)
                 rowLabel(row, name, 0.5)
@@ -1153,7 +1200,7 @@ function SZK:CreateWindow(cfg)
                 end
                 local function choose(n, silent)
                     selected = n; valLbl.Text = tostring(n); refreshSel()
-                    if flag then SZK.Flags[flag] = n end
+                    if flag then OPENUI.Flags[flag] = n end
                     if not silent then safe(cb, n) end
                 end
                 local function build()
@@ -1315,7 +1362,7 @@ function SZK:CreateWindow(cfg)
                 row.ClipsDescendants = true
                 if c.Image then
                     local src = c.Image
-                    if type(src) == "string" and SZK.Icons[src] then src = SZK.Icons[src] end
+                    if type(src) == "string" and OPENUI.Icons[src] then src = OPENUI.Icons[src] end
                     if type(src) == "number" then src = "rbxassetid://"..src end
                     New("ImageLabel", { Size = UDim2.fromScale(1,1), BackgroundTransparency = 1,
                         Image = src, ScaleType = Enum.ScaleType.Crop, Parent = row })
@@ -1368,6 +1415,8 @@ function SZK:CreateWindow(cfg)
 
     function Window:SetTheme(name) applyThemeByName(name) end
     function Window:SetTitle(t) titleLabel.Text = tostring(t or "") end
+    function Window:SetGlassEnabled(v) setGlassEnabled(v) end
+    function Window:SetGlassTransparency(v) setGlassTransparency(v) end
     function Window:SetSize(v)
         if typeof(v) == "Vector2" then
             winW, winH = v.X, v.Y
@@ -1384,7 +1433,7 @@ function SZK:CreateWindow(cfg)
             openWindows = math.max(0, openWindows - 1)
             updateBlurState()
         end
-        for i, w in ipairs(SZK.Windows) do if w == self then table.remove(SZK.Windows, i) break end end
+        for i, w in ipairs(OPENUI.Windows) do if w == self then table.remove(OPENUI.Windows, i) break end end
         pcall(function() GUI:Destroy() end)
         pcall(function() BtnGui:Destroy() end)
     end
@@ -1401,35 +1450,59 @@ function SZK:CreateWindow(cfg)
 
     applyThemeByName(themeName, true)
     toggleWindow()
-    table.insert(SZK.Windows, Window)
+    table.insert(OPENUI.Windows, Window)
+
+    --==== AUTO SETTINGS TAB ====
+    if cfg.AutoSettings ~= false then
+        task.defer(function()
+            if OPENUI.CreateSettingsTab then
+                pcall(OPENUI.CreateSettingsTab, OPENUI, Window)
+            end
+        end)
+    end
+
     return Window
 end
 
-SZK.New = SZK.CreateWindow
-SZK.Window = SZK.CreateWindow
+OPENUI.New = OPENUI.CreateWindow
+OPENUI.Window = OPENUI.CreateWindow
 
 --==================================================================
---  CONVENIENCE: Auto-CreateSettingsTab
+--  AUTO SETTINGS TAB (creado automáticamente por CreateWindow)
 --==================================================================
-function SZK:CreateSettingsTab(window, tabName, tabIcon)
+function OPENUI:CreateSettingsTab(window, tabName, tabIcon)
+    window = window or (OPENUI.Windows[#OPENUI.Windows])
+    if not window then return end
+    if window._hasSettings then return window._settingsTab end
+    window._hasSettings = true
     tabName = tabName or "Settings"
     tabIcon = tabIcon or "settings"
     local tab = window:CreateTab(tabName, tabIcon)
+    window._settingsTab = tab
 
     local secUI = tab:CreateSection("Interface")
     local themeNames = {}
-    for _, n in ipairs(SZK.ThemeOrder) do table.insert(themeNames, n) end
+    for _, n in ipairs(OPENUI.ThemeOrder) do table.insert(themeNames, n) end
     secUI:CreateDropdown({
         Name = "Theme", Options = themeNames, Default = currentThemeName,
         Callback = function(v) applyThemeByName(v) end,
     })
     secUI:CreateToggle({
-        Name = "Text Shadow", Default = textShadowOn,
-        Callback = function(v) setTextShadow(v) end,
+        Name = "Glass Effect", Default = glassEnabled,
+        Callback = function(v) setGlassEnabled(v) end,
+    })
+    secUI:CreateSlider({
+        Name = "Glass Transparency", Min = 0, Max = 95,
+        Default = math.floor(glassTransparency*100+0.5), Suffix = "%",
+        Callback = function(v) setGlassTransparency(v/100) end,
     })
     secUI:CreateToggle({
         Name = "Background Blur", Default = blurEnabled,
-        Callback = function(v) SZK:SetBlurEnabled(v) end,
+        Callback = function(v) OPENUI:SetBlurEnabled(v) end,
+    })
+    secUI:CreateToggle({
+        Name = "Text Shadow", Default = textShadowOn,
+        Callback = function(v) setTextShadow(v) end,
     })
 
     local secSound = tab:CreateSection("Sound")
@@ -1438,24 +1511,40 @@ function SZK:CreateSettingsTab(window, tabName, tabIcon)
         Callback = function(v) Sfx.Enabled = v end,
     })
     secSound:CreateSlider({
-        Name = "Volume", Min = 0, Max = 100, Default = math.floor(Sfx.Volume*100+0.5), Suffix = "%",
+        Name = "Volume", Min = 0, Max = 100,
+        Default = math.floor(Sfx.Volume*100+0.5), Suffix = "%",
         Callback = function(v) Sfx.Volume = v/100 end,
     })
     secSound:CreateButton({
-        Name = "Test Pop", Callback = function() Sfx.Pop() end,
-    })
-    secSound:CreateButton({
-        Name = "Test Notification", Callback = function()
+        Name = "Test Notification",
+        Callback = function()
             Notify("Success", "Test notification working ✓", 4, "success",
                 { { text = "OK", cb = function() end } })
         end,
     })
 
+    local secDanger = tab:CreateSection("Remove")
+    secDanger:CreateButton({
+        Name = "Remove All Sounds",
+        Callback = function() OPENUI:RemoveSounds() end,
+    })
+    secDanger:CreateButton({
+        Name = "Remove Blur Completely",
+        Callback = function() OPENUI:RemoveBlur() end,
+    })
+    secDanger:CreateButton({
+        Name = "Disable Glass Effect",
+        Callback = function() setGlassEnabled(false) end,
+    })
+
     return tab
 end
 
+--==================================================================
+--  NOTIFICATION
+--==================================================================
 task.delay(0.6, function()
-    Notify("SZK", "Library loaded · OpenUI Edition", 4, "success")
+    Notify("OPENUI", "Library loaded · OPENUI Edition", 4, "success")
 end)
 
-return SZK
+return OPENUI
