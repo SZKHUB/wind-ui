@@ -1,46 +1,3 @@
---[[
-    STARZKUI  v2.0  -  UI Library for Roblox (WindUI / FootageSus style)
-    Everything is drawn with Frames: no emojis, no asset needed for icons.
-    You can also use your own icon: "rbxassetid://123456"
-
-    Built-in icons: x, minus, grid, sliders, home, user, info, search, terminal,
-                    tag, check, chevron, lock, copy
-
-    -------------------------------------------------------------------
-    QUICK API
-    -------------------------------------------------------------------
-    local Lib = loadstring(game:HttpGet("URL"))()
-
-    Lib:SetTheme("Dark")            -- Dark | Light | Midnight | Rose | custom table
-    Lib:AddTheme("Name", {...})
-    Lib:GetThemes() / Lib:GetCurrentTheme()
-    Lib:SetFont(Enum.Font.Gotham)
-    Lib:SetLocalization({ Enabled = true, Language = "es", Translations = { es = { Hello = "Hola" } } })
-    Lib:Notify({...}) / Lib:Popup({...})
-
-    local Window = Lib:CreateWindow({
-        Title, Author, Icon, Theme, Size, Scale, Background, BackgroundBrightness,
-        Transparent, Acrylic, Resizable, ToggleKey, Intro, Version, Tag,
-        ConfigFolder, KeySystem = { Title, Note, Key = {"abc"}, KeyValidator = fn, URL, SaveKey, FileName },
-    })
-
-    Window:Section({ Title })            -- sidebar group header
-    local Tab = Window:Tab({ Title, Icon, Locked })
-    Tab:Lock() / Tab:Unlock()
-    local Sec = Tab:Section({ Title, Icon, Side = "left"|"right"|"full", Opened, Locked })
-
-    Elements (in a Section, Tab, Group, HStack or VStack):
-      Button, Toggle, Slider, Dropdown, Colorpicker, Input, Keybind, ProgressBar,
-      Paragraph, Code, Image, Banner, Logo, Label, Divider, Space, Tag,
-      Group, HStack, VStack
-
-    Common options: Title, Desc (shown as tooltip), Tooltip, Locked, Flag, Callback
-    Common methods: :Lock() :Unlock() :SetTitle() :Destroy() :Get() :Set()
-
-    Window:Notify / Window:Popup / Window:Toggle / Window:Destroy / Window:SelectTab
-    Window.ConfigManager:Save(name) / :Load(name) / :List() / :Delete(name)
-]]
-
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -51,9 +8,8 @@ local HttpService = game:GetService("HttpService")
 local Lighting = game:GetService("Lighting")
 local LocalPlayer = Players.LocalPlayer
 
-local Lib = { Version = "2.0.0", Flags = {}, Windows = {} }
+local Lib = { Version = "2.0", Flags = {}, Windows = {} }
 
----------------------------------------------------------------- themes
 Lib.Themes = {
     Dark = {
         Background = Color3.fromRGB(10, 10, 10), Sidebar = Color3.fromRGB(14, 14, 14),
@@ -89,13 +45,11 @@ Lib.Theme = {}
 for k, v in pairs(Lib.Themes.Dark) do Lib.Theme[k] = v end
 Lib.CurrentTheme = "Dark"
 local T = Lib.Theme
-local PanelT = 0 -- panel transparency (0.25 when the UI has a background image / is transparent)
+local PanelT = 0
 
 Lib.Localization = { Enabled = false, Prefix = "loc:", Language = "en", Translations = {} }
 Lib.Font = nil
 
----------------------------------------------------------------- theme registry
--- Every object created with a theme color is registered so SetTheme can recolor it live
 local Reg = {}
 local Themed = {}
 local COLOR_PROPS = {
@@ -119,7 +73,6 @@ local function OnTheme(inst, fn)
     table.insert(Themed, { inst, fn })
 end
 
----------------------------------------------------------------- helpers
 local function Loc(text)
     text = tostring(text == nil and "" or text)
     local L = Lib.Localization
@@ -217,14 +170,12 @@ local function Label(parent, text, size, color, font, xalign)
     })
 end
 
--- normalizes options: accepts Title or Name
 local function O(opt)
     if type(opt) ~= "table" then opt = { Title = opt } end
     opt.Title = opt.Title or opt.Name
     return opt
 end
 
--- connects a signal and disconnects it automatically when `owner` is destroyed
 local function Bind(signal, fn, owner)
     local c = signal:Connect(fn)
     if owner then
@@ -248,7 +199,6 @@ local function IsMove(i)
     return i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch
 end
 
----------------------------------------------------------------- fluid borders
 local Fluid = {}
 
 local function FluidStroke(stroke, dim)
@@ -298,8 +248,6 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
----------------------------------------------------------------- icons
--- Returns (holder, setColor)
 local function Icon(name, parent, size, color)
     color = color or T.Text
     local holder = New("Frame", {
@@ -406,7 +354,6 @@ local function Icon(name, parent, size, color)
     end
 end
 
----------------------------------------------------------------- dragging
 local function MakeDraggable(handle, target)
     local dragging, startInput, startPos, moved = false, nil, nil, false
 
@@ -436,7 +383,6 @@ local function MakeDraggable(handle, target)
     return function() return moved end
 end
 
----------------------------------------------------------------- tooltips
 local Tip = {}
 
 local function Tooltip(obj, text)
@@ -459,7 +405,6 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
----------------------------------------------------------------- elements
 local function Row(parent, h)
     local r = New("Frame", {
         BackgroundColor3 = T.Element,
@@ -473,7 +418,6 @@ local function Row(parent, h)
     return r
 end
 
--- Shared behaviour for every element: Lock/Unlock, SetTitle, Destroy, tooltip, flag
 local function Finish(row, opt, api, titleLabel)
     local lock
     function api:Lock()
@@ -507,7 +451,6 @@ end
 
 local function Attach(obj, container, isPage)
 
-    ------------------------------------------------ display elements
     function obj:Label(text)
         local row = Row(container, 26)
         row.AutomaticSize = Enum.AutomaticSize.Y
@@ -601,8 +544,6 @@ local function Attach(obj, container, isPage)
         return Finish(row, opt, api, tl)
     end
 
-    -- Banner / Image: wide image (Roblox asset ID)
-    -- opt.Image, opt.Height (90), opt.ScaleType "Fit" | "Stretch" | "Crop", opt.Title / opt.Subtitle
     function obj:Banner(opt)
         opt = O(opt)
         local H = opt.Height or 90
@@ -658,7 +599,6 @@ local function Attach(obj, container, isPage)
     end
     obj.Image = obj.Banner
 
-    -- Logo: small square image + title + subtitle
     function obj:Logo(opt)
         opt = O(opt)
         local row = Row(container, 52)
@@ -704,7 +644,6 @@ local function Attach(obj, container, isPage)
         return api
     end
 
-    -- Tag: small badge. opt.Title, opt.Icon, opt.Color (Color3)
     function obj:Tag(opt)
         opt = O(opt)
         local holder = New("Frame", {
@@ -752,7 +691,6 @@ local function Attach(obj, container, isPage)
         return api
     end
 
-    ------------------------------------------------ interactive elements
     function obj:Button(opt)
         opt = O(opt)
         local primary = (opt.Variant == "Primary")
@@ -837,7 +775,6 @@ local function Attach(obj, container, isPage)
         return Finish(row, opt, api, l)
     end
 
-    -- Slider: Value = {Min=, Max=, Default=} (or Min/Max/Default directly), Step (decimals ok)
     function obj:Slider(opt)
         opt = O(opt)
         local min, max, def
@@ -910,7 +847,6 @@ local function Attach(obj, container, isPage)
         return Finish(row, opt, api, l)
     end
 
-    -- Input: Type = "Default" | "Textarea"
     function obj:Input(opt)
         opt = O(opt)
         local area = (opt.Type == "Textarea")
@@ -953,7 +889,6 @@ local function Attach(obj, container, isPage)
         return Finish(row, opt, api, l)
     end
 
-    -- Dropdown: Values, Value, Multi
     function obj:Dropdown(opt)
         opt = O(opt)
         local options = opt.Values or opt.Options or {}
@@ -1107,7 +1042,6 @@ local function Attach(obj, container, isPage)
         return Finish(row, opt, api, l)
     end
 
-    -- Colorpicker: SV square + hue bar. Default = Color3
     function obj:Colorpicker(opt)
         opt = O(opt)
         local color = opt.Default or opt.Value or Color3.fromRGB(255, 255, 255)
@@ -1226,7 +1160,6 @@ local function Attach(obj, container, isPage)
         return Finish(row, opt, api, l)
     end
 
-    -- Keybind: Value = "E" or Enum.KeyCode.E. Callback fires when the key is pressed.
     function obj:Keybind(opt)
         opt = O(opt)
         local function toKey(k)
@@ -1277,7 +1210,6 @@ local function Attach(obj, container, isPage)
         return Finish(row, opt, api, l)
     end
 
-    -- ProgressBar: Value 0..100
     function obj:ProgressBar(opt)
         opt = O(opt)
         local value = math.clamp(opt.Value or opt.Default or 0, 0, 100)
@@ -1308,8 +1240,6 @@ local function Attach(obj, container, isPage)
         return Finish(row, opt, api, l)
     end
 
-    ------------------------------------------------ layout helpers
-    -- VStack / Group: vertical container. HStack: horizontal, children share the width.
     local function stack(kind)
         local horizontal = (kind == "HStack")
         local f = New("Frame", {
@@ -1353,7 +1283,6 @@ local function Attach(obj, container, isPage)
     function obj:VStack() return stack("VStack") end
     function obj:Group() return stack("Group") end
 
-    ------------------------------------------------ legacy aliases (old STARZKUI API)
     obj.AddLabel = obj.Label
     obj.AddButton = obj.Button
     obj.AddToggle = obj.Toggle
@@ -1363,7 +1292,6 @@ local function Attach(obj, container, isPage)
     obj.AddBanner = obj.Banner
     obj.AddLogo = obj.Logo
 
-    ------------------------------------------------ sections (pages only)
     if isPage then
         local cols, colL, colR
         local orderPage, orderL, orderR = 0, 0, 0
@@ -1391,7 +1319,6 @@ local function Attach(obj, container, isPage)
             nextSide = "left"
         end
 
-        -- Section({Title, Icon, Side, Opened, Locked})   or legacy AddSection(name, icon, side)
         function obj:Section(opt, icon, side)
             if type(opt) ~= "table" then
                 if icon == "left" or icon == "right" or icon == "full" then side, icon = icon, nil end
@@ -1500,7 +1427,6 @@ local function Attach(obj, container, isPage)
     end
 end
 
----------------------------------------------------------------- global API
 function Lib:AddTheme(name, tbl)
     local base = {}
     for k, v in pairs(Lib.Themes.Dark) do base[k] = v end
@@ -1552,8 +1478,6 @@ function Lib:SetFont(font)
     end
 end
 
--- Lib:SetLocalization({ Enabled = true, Prefix = "loc:", Language = "es", Translations = { es = { Key = "Texto" } } })
--- Then use "loc:Key" in any text. Applies to texts created after the call.
 function Lib:SetLocalization(cfg)
     for k, v in pairs(cfg or {}) do Lib.Localization[k] = v end
 end
@@ -1566,7 +1490,6 @@ function Lib:Popup(opt)
     if Lib._last then return Lib._last:Popup(opt) end
 end
 
----------------------------------------------------------------- config manager
 local function encodeValue(v)
     if typeof(v) == "Color3" then return { __t = "Color3", r = v.R, g = v.G, b = v.B } end
     if typeof(v) == "EnumItem" then return { __t = "Key", name = v.Name } end
@@ -1635,7 +1558,6 @@ local function MakeConfigManager(folder)
     return CM
 end
 
----------------------------------------------------------------- key system
 local function KeyGate(gui, ks)
     local keys = ks.Key
     if type(keys) == "string" then keys = { keys } end
@@ -1739,7 +1661,6 @@ local function KeyGate(gui, ks)
     repeat task.wait() until done or not ov.Parent
 end
 
----------------------------------------------------------------- window
 function Lib:CreateWindow(cfg)
     cfg = cfg or {}
     if cfg.Theme then Lib:SetTheme(cfg.Theme) end
@@ -1756,7 +1677,6 @@ function Lib:CreateWindow(cfg)
     end
     Window.Gui = gui
 
-    -- tooltip bubble
     do
         local tf = New("Frame", {
             BackgroundColor3 = T.Background, Size = UDim2.fromOffset(0, 0),
@@ -1768,10 +1688,8 @@ function Lib:CreateWindow(cfg)
         Tip.frame, Tip.label = tf, tl
     end
 
-    -- key system (blocks until the key is valid)
     if cfg.KeySystem then KeyGate(gui, cfg.KeySystem) end
 
-    -- main window
     local BASE = cfg.Scale or 0.75
     local baseSize = cfg.Size or UDim2.fromOffset(520, 340)
     local useT = (cfg.Background ~= nil and cfg.Background ~= "") or cfg.Transparent == true
@@ -1807,12 +1725,10 @@ function Lib:CreateWindow(cfg)
         }, { Corner(14) })
     end
 
-    -- scaled container: the design is laid out at baseSize and scaled by BASE, so resizing the window just works
     local body = New("Frame", {
         Name = "Body", BackgroundTransparency = 1, Size = UDim2.fromScale(1 / BASE, 1 / BASE), Parent = main,
     }, { New("UIScale", { Scale = BASE }) })
 
-    -- top bar
     local top = New("Frame", {
         BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 40), Parent = body,
     })
@@ -1859,7 +1775,6 @@ function Lib:CreateWindow(cfg)
     local closeBtn = topButton("x", -10)
     local minBtn = topButton("minus", -36)
 
-    -- chips (Version / Tag): only if you set them in the config
     local chipHolder = New("Frame", {
         AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -64, 0.5, 0),
         Size = UDim2.fromOffset(0, 22), AutomaticSize = Enum.AutomaticSize.X,
@@ -1893,7 +1808,6 @@ function Lib:CreateWindow(cfg)
 
     MakeDraggable(top, main)
 
-    -- sidebar
     local side = New("Frame", {
         Position = UDim2.fromOffset(0, 41), Size = UDim2.new(0, 112, 1, -41),
         BackgroundColor3 = T.Sidebar, BackgroundTransparency = useT and 1 or 0, BorderSizePixel = 0, Parent = body,
@@ -1918,7 +1832,6 @@ function Lib:CreateWindow(cfg)
         Parent = side,
     }, { List(3), Pad(6, 6, 6, 6) })
 
-    -- profile card
     local prof = New("Frame", {
         AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 6, 1, -6),
         Size = UDim2.new(1, -12, 0, 38), BackgroundColor3 = T.Element, Parent = side,
@@ -1942,13 +1855,11 @@ function Lib:CreateWindow(cfg)
     pu.Size = UDim2.new(1, -42, 0, 12)
     pu.TextTruncate = Enum.TextTruncate.AtEnd
 
-    -- content
     local content = New("Frame", {
         BackgroundTransparency = 1, Position = UDim2.fromOffset(112, 41),
         Size = UDim2.new(1, -112, 1, -41), ClipsDescendants = true, Parent = body,
     })
 
-    -- resize grip
     if cfg.Resizable ~= false then
         local grip = New("TextButton", {
             AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -3, 1, -3),
@@ -1981,7 +1892,7 @@ function Lib:CreateWindow(cfg)
                 local w = math.max(MINW, startS.X + d.X)
                 local h = math.max(MINH, startS.Y + d.Y)
                 main.Size = UDim2.fromOffset(w, h)
-                -- window is center-anchored: shift it so the top-left corner stays put
+
                 main.Position = UDim2.new(
                     startPos.X.Scale, startPos.X.Offset + (w - startS.X) / 2,
                     startPos.Y.Scale, startPos.Y.Offset + (h - startS.Y) / 2
@@ -1990,8 +1901,6 @@ function Lib:CreateWindow(cfg)
         end, grip)
     end
 
-    ------------------------------------------------ popups / dialogs
-    -- Window:Popup({ Title, Content, Buttons = { {Title, Icon, Variant = "Primary", Callback} } })
     function Window:Popup(opt)
         opt = O(opt)
         if body:FindFirstChild("PopupOverlay") then return end
@@ -2078,7 +1987,6 @@ function Lib:CreateWindow(cfg)
     end
     Window.Dialog = Window.Popup
 
-    ------------------------------------------------ open button (minimized)
     local openBtn = New("TextButton", {
         Name = "OpenButton", AnchorPoint = Vector2.new(0.5, 0),
         Position = UDim2.new(0.5, 0, 0, 14), Size = UDim2.fromOffset(0, 38),
@@ -2104,7 +2012,6 @@ function Lib:CreateWindow(cfg)
     local obScale = New("UIScale", { Scale = 1, Parent = openBtn })
     local wasMoved = MakeDraggable(openBtn, openBtn)
 
-    ------------------------------------------------ show / hide (animated)
     local visible = true
     local busy = false
     local destroying = false
@@ -2228,7 +2135,6 @@ function Lib:CreateWindow(cfg)
         end
     end
 
-    ------------------------------------------------ notifications
     local notifHolder = New("Frame", {
         AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 10),
         Size = UDim2.fromOffset(180, 200), BackgroundTransparency = 1, Parent = gui,
@@ -2237,7 +2143,6 @@ function Lib:CreateWindow(cfg)
         VerticalAlignment = Enum.VerticalAlignment.Top,
     }) })
 
-    -- Window:Notify({ Title, Content, Icon, Duration, Buttons = { {Title, Callback} } })
     function Window:Notify(opt)
         opt = O(opt)
         local wrap = New("Frame", {
@@ -2301,7 +2206,6 @@ function Lib:CreateWindow(cfg)
         task.delay(opt.Duration or 4, dismiss)
     end
 
-    ------------------------------------------------ tabs
     local function selectTab(tab)
         if current == tab or tab.Locked then return end
         for _, t in ipairs(tabs) do
@@ -2320,14 +2224,12 @@ function Lib:CreateWindow(cfg)
         if x then selectTab(x) end
     end
 
-    -- re-applies state colors after a theme change
     Window._refresh = function()
         local c = current
         current = nil
         if c then selectTab(c) end
     end
 
-    -- Window:Section({Title}) -> a header in the sidebar; Section:Tab(...) adds a tab below it
     function Window:Section(opt)
         opt = O(opt)
         local lbl = Label(tabList, string.upper(Loc(opt.Title or "")), 9, T.SubText, Enum.Font.GothamBold)
@@ -2381,7 +2283,7 @@ function Lib:CreateWindow(cfg)
             nm.TextTransparency = 0.5
             Tween(btn, 0.15, { BackgroundTransparency = 1 })
             if current == tab then
-                -- move away from a tab that just got locked
+
                 for _, t in ipairs(tabs) do
                     if t ~= tab and not t.Locked then
                         current = nil
@@ -2421,11 +2323,9 @@ function Lib:CreateWindow(cfg)
     end
     Window.AddTab = Window.Tab
 
-    ------------------------------------------------ config manager
     Window.ConfigManager = MakeConfigManager(cfg.ConfigFolder or "STARZKUI")
     Window.Flags = Lib.Flags
 
-    ------------------------------------------------ intro: loading with 4 blocks
     local function PlayIntro()
         busy = true
         local splash = New("Frame", {
